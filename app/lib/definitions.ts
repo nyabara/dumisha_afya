@@ -1,11 +1,11 @@
 export type User = {
-    id: number;
+    id: string;
     name: string;
     email: string;
     password: string
 };
 export type Vacancy = {
-    id: number;
+    id: string;
     name: string;
     place: string;
     // In TypeScript, this is called a string union type.
@@ -14,32 +14,33 @@ export type Vacancy = {
     date: string;
 };
 export type Requirement = {
-    id: number;
-    vacancy_id: number;
+    id: string;
+    vacancy_id: string;
     name:string
 }
 
 
 export type RequirementType = {
-    id: number;
+    id: string;
     name:string;
-    requirement_id:number;
+    requirement_id:string;
 }
 
 export type RequirementValue = {
-    id: number;
+    id: string;
     name:string;
-    requirement_value_id: number;
+    requirement_value_id: string;
 }
 
 export type JobsTable = {
-    id: Number;
-    name: string;
-    place: string;
-    date: string;
-    education: string;
-    subject: string;
-    status: string;
+    id: string;
+    JobTitle: string;
+    Place: string;
+    DateCreated: string;
+    requirement: string;
+
 
 }
+
+
 

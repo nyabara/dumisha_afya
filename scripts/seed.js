@@ -15,7 +15,7 @@ async function seedUsers(client){
         //Create the users table
         const createTable = await client.sql`
         CREATE TABLE IF NOT EXISTS users(
-            id SERIAL PRIMARY KEY,
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             email TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL
@@ -45,11 +45,11 @@ async function seedUsers(client){
 
 async function seedVacancies(client){
     try {
-        await client.sql`CREATE EXTENSI IF NOT EXISTS "uuid-ossp"`;
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
         const createTable = await client.sql`
         CREATE TABLE IF NOT EXISTS vacancies(
-            id SERIAL RIMARY KEY,
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             place VARCHAR(255) NOT NULL,
             status VARCHAR(255) NOT NULL,
@@ -62,8 +62,8 @@ async function seedVacancies(client){
         const insertedVacancies = await Promise.all(
             vacancies.map(
                 (vacancy)=> client.sql`
-                INSERT INTO vacancies (name, place,status,date)
-                VALUES (${vacancy.name},${vacancy.place},${vacancy.status}, ${vacancy.date})
+                INSERT INTO vacancies (id,name, place,status,date)
+                VALUES (${vacancy.id},${vacancy.name},${vacancy.place},${vacancy.status}, ${vacancy.date})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
@@ -71,7 +71,7 @@ async function seedVacancies(client){
         console.log(`Seeded ${insertedVacancies.length} vacancies`);
         return {
             createTable,
-            vacancies: insertedVacancies,};
+            vacancies: insertedVacancies};
     }catch(error){
             console.error('Error seeding vacancies:', error);
             throw error;
@@ -82,13 +82,13 @@ async function seedVacancies(client){
 
 async function seedRequirements(client){
     try {
-        await client.sql`CREATE EXTENSI IF NOT EXISTS "uuid-ossp"`;
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
         const createTable = await client.sql`
         CREATE TABLE IF NOT EXISTS requirements(
-            id SERIAL RIMARY KEY,
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            vacancy_id INT NOT NULL,
+            vacancy_id UUID NOT NULL
         );
         `;
 
@@ -97,18 +97,18 @@ async function seedRequirements(client){
         const insertedRequirements = await Promise.all(
             requirements.map(
                 (requirement)=> client.sql`
-                INSERT INTO vacancies (name, vacancy_id)
-                VALUES (${requirement.name},${requirement.vacancy_id})
+                INSERT INTO requirements (id,name, vacancy_id)
+                VALUES (${requirement.id},${requirement.name},${requirement.vacancy_id})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
         );
-        console.log(`Seeded ${insertedRequirements.length} vacancies`);
+        console.log(`Seeded ${insertedRequirements.length} requirements`);
         return {
             createTable,
             requirements: insertedRequirements};
     }catch(error){
-            console.error('Error seeding vacancies:', error);
+            console.error('Error seeding requirements:', error);
             throw error;
         }
 }
@@ -116,13 +116,13 @@ async function seedRequirements(client){
 
 async function seedRequirementTypes(client){
     try {
-        await client.sql`CREATE EXTENSI IF NOT EXISTS "uuid-ossp"`;
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
         const createTable = await client.sql`
         CREATE TABLE IF NOT EXISTS requirement_types(
-            id SERIAL RIMARY KEY,
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            requirement_id INT NOT NULL,
+            requirement_id UUID NOT NULL
         );
         `;
 
@@ -131,8 +131,8 @@ async function seedRequirementTypes(client){
         const insertedRequirementTypes = await Promise.all(
             requirement_types.map(
                 (requirementType)=> client.sql`
-                INSERT INTO vacancies (name, requirement_id)
-                VALUES (${requirementType.name},${requirementType.requirement_id})
+                INSERT INTO requirement_types (id,name, requirement_id)
+                VALUES (${requirementType.id},${requirementType.name},${requirementType.requirement_id})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
@@ -150,13 +150,13 @@ async function seedRequirementTypes(client){
 
 async function seedRequirementValues(client){
     try {
-        await client.sql`CREATE EXTENSI IF NOT EXISTS "uuid-ossp"`;
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
         const createTable = await client.sql`
         CREATE TABLE IF NOT EXISTS requirement_values(
-            id SERIAL RIMARY KEY,
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            requirement_type_id INT NOT NULL,
+            requirement_type_id UUID NOT NULL
         );
         `;
 
@@ -165,7 +165,7 @@ async function seedRequirementValues(client){
         const insertedRequirementValues = await Promise.all(
             requirement_values.map(
                 (requirementValue)=> client.sql`
-                INSERT INTO requirement_values (name, place,status,date)
+                INSERT INTO requirement_values (name, requirement_type_id)
                 VALUES (${requirementValue.name},${requirementValue.requirement_type_id})
                 ON CONFLICT (id) DO NOTHING;
                 `,
@@ -180,3 +180,22 @@ async function seedRequirementValues(client){
             throw error;
         }
 }
+
+async function main() {
+    const client = await db.connect();
+  
+    await seedUsers(client);
+    await seedVacancies(client);
+    await seedRequirements(client);
+    await seedRequirementTypes(client);
+    await seedRequirementValues(client);
+  
+    await client.end();
+  }
+  
+  main().catch((err) => {
+    console.error(
+      'An error occurred while attempting to seed the database:',
+      err,
+    );
+  });
