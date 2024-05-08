@@ -2,13 +2,14 @@ import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { lusitana } from '@/app/ui/fonts';
 import { JobsTable } from '@/app/lib/definitions';
+import { getJobs } from '@/app/lib/data';
 
 
-export default async function LatestJobs({
-  latestJobs,
-}: {
-    latestJobs: JobsTable[];
-}) {
+export default async function LatestJobs() {
+
+    const latestJobs = await getJobs(); // Ensure to await the function call
+    console.log('Fetched jobs:', latestJobs);
+   
   return (
     <div className="flex w-full flex-col md:col-span-4">
       <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
@@ -19,7 +20,7 @@ export default async function LatestJobs({
 
         { <div className="bg-white px-6">
           {latestJobs.map((job, i) => {
-            console.log(`Data ${job.JobTitle} from  remote `);
+            //console.log(`Data ${job.Jobtitle} from  remote `);
             return (
               <div
                 key={job.id}
@@ -40,19 +41,19 @@ export default async function LatestJobs({
                   /> */}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold md:text-base">
-                      {job.JobTitle}
+                      {job.jobtitle}
                       
                     </p>
                     <p className="hidden text-sm text-gray-500 sm:block">
-                      {job.Place}
+                      {job.place}
                     </p>
                   </div>
                 </div>
-                <p
+                {/* <p
                   className={`${lusitana.className} truncate text-sm font-medium md:text-base`}
                 >
-                  {job.DateCreated}
-                </p>
+                  {job.requirement}
+                </p> */}
               </div>
             );
           })}

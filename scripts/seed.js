@@ -3,7 +3,7 @@ const {
     users,
     vacancies,
     requirements,
-    requirement_types,
+    locations,
     requirement_values
 } = require('../app/lib/placeholder-data.js');
 const bcrypt = require('bcrypt');
@@ -43,6 +43,39 @@ async function seedUsers(client){
     }
 }
 
+async function seedLocations(client){
+    try {
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+        //Create the users table
+        const createTable = await client.sql`
+        CREATE TABLE IF NOT EXISTS locations(
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            name VARCHAR(255) NOT NULL
+        );`;
+        console.log(`Created "locations" table`);
+
+        //Insert data into the "users" table
+        const insertedLocations = await Promise.all(
+            locations.map(async (location)=>{
+    
+                return client.sql`
+                INSERT INTO locations (id,name)
+                VALUES (${location.id},${location.name})
+                ON CONFLICT (id) DO NOTHING;`;
+            }),
+        );
+        console.log(`Seeded ${insertedLocations.length} locations`);
+        return {
+            createTable,
+            locations: insertedLocations
+        };
+    } catch (error){
+        console.error('Error seeding locations', error);
+        throw error;
+    }
+}
+
 async function seedVacancies(client){
     try {
         await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -51,7 +84,7 @@ async function seedVacancies(client){
         CREATE TABLE IF NOT EXISTS vacancies(
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            place VARCHAR(255) NOT NULL,
+            location_id UUID NOT NULL,
             status VARCHAR(255) NOT NULL,
             date DATE NOT NULL
         );
@@ -62,8 +95,8 @@ async function seedVacancies(client){
         const insertedVacancies = await Promise.all(
             vacancies.map(
                 (vacancy)=> client.sql`
-                INSERT INTO vacancies (id,name, place,status,date)
-                VALUES (${vacancy.id},${vacancy.name},${vacancy.place},${vacancy.status}, ${vacancy.date})
+                INSERT INTO vacancies (id,name, location_id,status,date)
+                VALUES (${vacancy.id},${vacancy.name},${vacancy.location_id},${vacancy.status}, ${vacancy.date})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
@@ -113,41 +146,6 @@ async function seedRequirements(client){
         }
 }
 
-
-async function seedRequirementTypes(client){
-    try {
-        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
-        const createTable = await client.sql`
-        CREATE TABLE IF NOT EXISTS requirement_types(
-            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            requirement_id UUID NOT NULL
-        );
-        `;
-
-        console.log(`Created "requirement_types" table`);
-
-        const insertedRequirementTypes = await Promise.all(
-            requirement_types.map(
-                (requirementType)=> client.sql`
-                INSERT INTO requirement_types (id,name, requirement_id)
-                VALUES (${requirementType.id},${requirementType.name},${requirementType.requirement_id})
-                ON CONFLICT (id) DO NOTHING;
-                `,
-            ),
-        );
-        console.log(`Seeded ${insertedRequirementTypes.length} requirement_types`);
-        return {
-            createTable,
-            requirement_types: insertedRequirementTypes};
-    }catch(error){
-            console.error('Error seeding requirement_types:', error);
-            throw error;
-        }
-}
-
-
 async function seedRequirementValues(client){
     try {
         await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -156,7 +154,7 @@ async function seedRequirementValues(client){
         CREATE TABLE IF NOT EXISTS requirement_values(
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            requirement_type_id UUID NOT NULL
+            requirement_id UUID NOT NULL
         );
         `;
 
@@ -165,8 +163,8 @@ async function seedRequirementValues(client){
         const insertedRequirementValues = await Promise.all(
             requirement_values.map(
                 (requirementValue)=> client.sql`
-                INSERT INTO requirement_values (name, requirement_type_id)
-                VALUES (${requirementValue.name},${requirementValue.requirement_type_id})
+                INSERT INTO requirement_values (name, requirement_id)
+                VALUES (${requirementValue.name},${requirementValue.requirement_id})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
@@ -185,11 +183,10 @@ async function main() {
     const client = await db.connect();
   
     await seedUsers(client);
+    await seedLocations(client);
     await seedVacancies(client);
     await seedRequirements(client);
-    await seedRequirementTypes(client);
     await seedRequirementValues(client);
-  
     await client.end();
   }
   
