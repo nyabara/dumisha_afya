@@ -1,12 +1,12 @@
 import Form from '@/app/ui/jobs/create-form';
 import Breadcrumbs from '@/app/ui/jobs/breadcrumbs';
-import { fetchRequirements, fetchLocations } from '@/app/lib/data';
+import { fetchLocations } from '@/app/lib/data';
  
 export default async function Page() {
   //const requirements= await fetchRequirements();
   const locations= await fetchLocations();
-  const requirements= await fetchRequirements();
-  console.log('requirements2',requirements[0].name)
+ // const requirements= await fetchRequirements();
+ 
   return (
     <main>
       <Breadcrumbs
@@ -19,7 +19,7 @@ export default async function Page() {
           },
         ]}
       />
-      <Form locations={locations} requirements={requirements} />
+      <Form locations={locations}  />
     </main>
   );
 }

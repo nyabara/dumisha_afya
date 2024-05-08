@@ -1,12 +1,14 @@
 import Form from '@/app/ui/jobs/edit-form';
 import Breadcrumbs from '@/app/ui/jobs/breadcrumbs';
-import { fetchJobById, fetchRequirements, fetchLocations } from '@/app/lib/data';
+import { fetchJobById,fetchLocations } from '@/app/lib/data';
+import { unstable_noStore as noStore } from 'next/cache';
  
 export default async function Page({ params }: { params: { id: string } }) {
+  noStore
     const id = params.id;
-    const [job, requirements, locations] = await Promise.all([
+    const [job, locations] = await Promise.all([
         fetchJobById(id),
-        fetchRequirements(),
+      
         fetchLocations(),
       ]);
   return (
@@ -21,7 +23,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           },
         ]}
       />
-      <Form job={job} requirements={requirements} locations={locations}/>
+      <Form job={job}  locations={locations}/>
     </main>
   );
 }

@@ -9,14 +9,16 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
 import { createJob } from '@/app/lib/actions';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default function Form({
   locations,
-  requirements,
+  
 }: {
   locations: LocationField[];
-  requirements: RequirementField[];
+  
 }) {
+  noStore
   return (
     <form action={createJob}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
@@ -65,7 +67,7 @@ export default function Form({
           </div>
         </div>
               {/* Requirement Name */}
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label htmlFor="requirement" className="mb-2 block text-sm font-medium">
             Choose Requirement
           </label>
@@ -87,7 +89,7 @@ export default function Form({
             </select>
             <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
           </div>
-        </div>
+        </div> */}
 
         {/* Invoice Status */}
         <fieldset>

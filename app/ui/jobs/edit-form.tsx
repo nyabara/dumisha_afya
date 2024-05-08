@@ -11,17 +11,18 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default function EditJobForm({
   job,
-  requirements,
   locations,
 }: {
   job: JobForm;
-  requirements: RequirementField[];
+  
   locations:LocationField[]
 }) {
-  console.log('requirement:',requirements[0].name);
+  noStore
+
   return (
     <form>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
@@ -97,7 +98,7 @@ export default function EditJobForm({
           </div>
         </div>
               {/* Requirement Name */}
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label htmlFor="requirement" className="mb-2 block text-sm font-medium">
             Choose Requirement
           </label>
@@ -119,7 +120,7 @@ export default function EditJobForm({
             </select>
             <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
           </div>
-        </div>
+        </div> */}
 
         {/* Job Status */}
         <fieldset>
