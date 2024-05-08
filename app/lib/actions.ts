@@ -32,7 +32,7 @@ export async function createJob(formData: FormData) {
   const date = new Date().toISOString().split('T')[0];
 
   await sql`
-    INSERT INTO vacancies (name, place,status,date)
+    INSERT INTO vacancies (name, location_id,status,date)
     VALUES (${name}, ${place}, ${status}, ${date})
   `;
   revalidatePath('/dashboard/jobs');
