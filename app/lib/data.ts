@@ -16,21 +16,21 @@ export async function getJobs() {
   try {
     const data = await sql<JobsTable>`
       SELECT
-      vc.id,
-      vc.name AS jobtitle,
-      vc.place AS place,
-      vc.date AS datecreated,
-      rqp.name AS requirement,
-      vc.status,
-      rqv.name AS subject
-    FROM
-      vacancies AS vc
-    LEFT JOIN
-      requirements AS rq ON vc.id = rq.vacancy_id
-    LEFT JOIN
-      requirement_types AS rqp ON rq.id = rqp.requirement_id
-    LEFT JOIN
-      requirement_values AS rqv ON rqp.id = rqv.requirement_type_id
+        vc.id,
+        vc.name AS jobtitle,
+        loc.name AS place,
+        vc.date AS datecreated,
+        rq.name AS requirement,
+        vc.status,
+        rqv.name AS subject
+      FROM
+        vacancies AS vc
+      LEFT JOIN
+        locations as loc on vc.location_id=loc.id
+      LEFT JOIN
+        requirements AS rq ON vc.id = rq.vacancy_id
+      LEFT JOIN
+        requirement_values AS rqv ON rq.id = rqv.requirement_id
     `;
     console.log('Query result:', data); // Log the data object
     console.log('Rows:', data.rows);
