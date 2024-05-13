@@ -55,3 +55,8 @@ export type RequirementField = {
     status: 'pending' | 'closed';
   };
 
+
+export type JobCount = {
+    month: string;
+    job_count: number;
+  };

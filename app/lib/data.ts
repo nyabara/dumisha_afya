@@ -3,13 +3,52 @@ import { unstable_noStore as noStore } from 'next/cache';
 import {
     Vacancy,
     Requirement,
-    RequirementValue,
+    JobCount,
     JobsTable,
     User,
     RequirementField,
     LocationField,
     JobForm
 } from './definitions';
+
+
+
+
+export async function fetchJobCount() {
+  noStore
+  // Add noStore() here to prevent the response from being cached.
+  // This is equivalent to in fetch(..., {cache: 'no-store'}).
+
+  try {
+    // Artificially delay a response for demo purposes.
+    // Don't do this in production :)
+
+    // console.log('Fetching revenue data...');
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const data = await sql<JobCount>`
+        SELECT 
+        DATE_TRUNC('month', date) AS month,
+        COUNT(*) AS job_count
+    FROM 
+        vacancies
+    WHERE 
+        date >= DATE_TRUNC('year', CURRENT_DATE) - INTERVAL '11 months'
+    GROUP BY 
+        DATE_TRUNC('month', date)
+    HAVING 
+        COUNT(*) > 0
+    ORDER BY 
+        month`;
+
+    // console.log('Data fetch completed after 3 seconds.');
+
+    return data.rows;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch jobcount data.');
+  }
+}
 
 export async function getJobs() {
   noStore
@@ -39,6 +78,38 @@ export async function getJobs() {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch all jobs.');
+  }
+}
+
+export async function fetchCardData() {
+  noStore
+  try {
+    // You can probably combine these into a single SQL query
+    // However, we are intentionally splitting them to demonstrate
+    // how to initialize multiple queries in parallel with JS.
+    const jobCountPromise = sql`SELECT COUNT(*) FROM vacancies`;
+    const jobStatusPromise = sql`SELECT
+         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS "pending",
+         SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS "closed"
+         FROM vacancies`;
+
+    const data = await Promise.all([
+      jobCountPromise,
+      jobStatusPromise,
+    ]);
+
+    const numberOfJobs = Number(data[0].rows[0].count ?? '0');
+    const totalPendingJobs = Number(data[1].rows[0].pending ?? '0');
+    const totalClosedJobs = Number(data[1].rows[0].closed ?? '0');
+
+    return {
+      numberOfJobs,
+      totalPendingJobs,
+      totalClosedJobs,
+    };
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch card data.');
   }
 }
 

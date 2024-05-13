@@ -3,7 +3,7 @@ import Search from '@/app/ui/search';
 import Table from '@/app/ui/jobs/table';
 import { CreateJob } from '@/app/ui/jobs/buttons';
 import { lusitana } from '@/app/ui/fonts';
-import { InvoicesTableSkeleton } from '@/app/ui/skeletons';
+import { JobsTableSkeleton } from '@/app/ui/skeletons';
 import { Suspense } from 'react';
 import { fetchJobsPages } from '@/app/lib/data';
  
@@ -28,7 +28,7 @@ export default async function Page({
         <Search placeholder="Search jobs..." />
         <CreateJob />
       </div>
-       <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
+       <Suspense key={query + currentPage} fallback={<JobsTableSkeleton />}>
         <Table query={query} currentPage={currentPage} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">

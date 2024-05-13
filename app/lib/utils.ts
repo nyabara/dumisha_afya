@@ -1,3 +1,5 @@
+import { JobCount } from './definitions';
+
 export const formatDateToLocal = (
     dateStr: string,
     locale: string = 'en-US',
@@ -11,6 +13,20 @@ export const formatDateToLocal = (
     const formatter = new Intl.DateTimeFormat(locale, options);
     return formatter.format(date);
   };
+
+  export const formatMonthToLocal = (
+  dateStr: string,
+  locale: string = 'en-US',
+) => {
+  const date = new Date(dateStr);
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    year: 'numeric',
+  };
+  const formatter = new Intl.DateTimeFormat(locale, options);
+  return formatter.format(date);
+};
+
 
   export const generatePagination = (currentPage: number, totalPages: number) => {
     // If the total number of pages is 7 or less,
@@ -43,4 +59,19 @@ export const formatDateToLocal = (
       '...',
       totalPages,
     ];
+  };
+
+  export const generateYAxis = (JobCount: JobCount[]) => {
+    // Calculate what labels we need to display on the y-axis
+    // based on highest record and in 1000s
+    const yAxisLabels = [];
+    const highestRecord = Math.max(...JobCount.map((month) => month.job_count));
+    const topLabel = Math.ceil(highestRecord / 1) * 1;
+  
+    for (let i = topLabel; i >= 0; i -= 100) {
+      //yAxisLabels.push(`$${i / 1000}K`);
+      yAxisLabels.push(`${i / 1}`);
+    }
+  
+    return { yAxisLabels, topLabel };
   };

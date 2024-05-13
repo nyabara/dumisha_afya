@@ -19,7 +19,7 @@ export default async function Page() {
           },
         ]}
       />
-      <Form locations={locations}  />
+      <Form locations={locations} />
     </main>
   );
 }
