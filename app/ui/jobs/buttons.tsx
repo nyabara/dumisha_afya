@@ -1,5 +1,6 @@
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { deleteJob } from '@/app/lib/actions';
 
 export function CreateJob() {
   return (
@@ -26,12 +27,13 @@ export function UpdateJob({ id }: { id: string }) {
 }
 
 export function DeleteJob({ id }: { id: string }) {
+  const deleteJobWithId = deleteJob.bind(null, id);
   return (
-    <>
+    <form action={deleteJobWithId}>
       <button className="rounded-md border p-2 hover:bg-gray-100">
         <span className="sr-only">Delete</span>
-        <TrashIcon className="w-5" />
+        <TrashIcon className="w-4" />
       </button>
-    </>
+    </form>
   );
 }

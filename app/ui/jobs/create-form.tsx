@@ -115,14 +115,14 @@ export default function Form({
               </div>
               <div className="flex items-center">
                 <input
-                  id="paid"
+                  id="closed"
                   name="status"
                   type="radio"
-                  value="paid"
+                  value="closed"
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
-                  htmlFor="paid"
+                  htmlFor="closed"
                   className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-medium text-white"
                 >
                   Closed <CheckIcon className="h-4 w-4" />

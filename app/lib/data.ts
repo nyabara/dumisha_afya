@@ -239,7 +239,6 @@ export async function getUser(email: string) {
 
   export async function fetchJobById(id: string) {
     noStore
-    
     try {
       
       const data = await sql<JobForm>`
