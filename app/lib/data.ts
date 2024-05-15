@@ -198,6 +198,7 @@ export async function fetchRequirements() {
     `;
 
     const requirements = data.rows;
+    console.log(requirements);
     return requirements;
   } catch (err) {
     console.error('Database Error:', err);
@@ -257,6 +258,7 @@ export async function getUser(email: string) {
       //   amount: invoice.amount / 100,
       // }));
       const job= data.rows
+      console.log(job);
       return job[0];
     } catch (error) {
       console.error('Database Error:', error);

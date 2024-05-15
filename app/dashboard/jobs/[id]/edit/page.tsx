@@ -1,6 +1,7 @@
 import Form from '@/app/ui/jobs/edit-form';
 import Breadcrumbs from '@/app/ui/jobs/breadcrumbs';
 import { fetchJobById,fetchLocations } from '@/app/lib/data';
+import { notFound } from 'next/navigation';
  
 export default async function Page({ params }: { params: { id: string } }) {
     const id = params.id;
@@ -8,6 +9,9 @@ export default async function Page({ params }: { params: { id: string } }) {
         fetchJobById(id),
         fetchLocations(),
       ]);
+      if (!job) {
+        notFound();
+      }
       console.log("jobStatus1",job.status);
       console.log("jobId",job.id);
   return (

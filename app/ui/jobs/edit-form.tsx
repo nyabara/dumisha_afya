@@ -21,7 +21,7 @@ export default function EditJobForm({
   locations:LocationField[];
 }) {
 
-  console.log("jobStatus",job.status)
+  
   const updateJobWithId = updateJob.bind(null, job.id);
   
 
