@@ -172,7 +172,7 @@ export type RqState = {
 
 const CreateRequirement = RequirementFormSchema.omit({ id: true});
  
-export async function createRequirement(prevst: RqState, formData: FormData) {
+export async function createRequirement(formData: FormData) {
     // Validate form fields using Zod
     const validatedFields = CreateRequirement.safeParse({
       requirement: formData.get('requirement'),

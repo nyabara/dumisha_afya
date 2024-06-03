@@ -272,7 +272,6 @@ export async function getUser(email: string) {
         FROM vacancies
         WHERE vacancies.id = ${id};
       `;
-  
       // const invoice = data.rows.map((invoice) => ({
       //   ...invoice,
       //   // Convert amount from cents to dollars

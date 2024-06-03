@@ -1,7 +1,6 @@
 import { generateYAxis, formatMonthToLocal } from '@/app/lib/utils';
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
-import { JobCount } from '@/app/lib/definitions';
 import { fetchJobCount } from '@/app/lib/data';
 
 // This component is representational only.
