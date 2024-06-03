@@ -159,18 +159,20 @@ const RequirementFormSchema = z.object({
   }),
 });
 
+
 export type RqState = {
   errors?: {
-    requirement?:string[];
+    requirement?: string[];
     position_id?: string[];
     rqvtype?: string[];
   };
   message?: string | null;
-}
+};
+
 
 const CreateRequirement = RequirementFormSchema.omit({ id: true});
  
-export async function createRequirement(prevState: RqState, formData: FormData) {
+export async function createRequirement(prevst: RqState, formData: FormData) {
     // Validate form fields using Zod
     const validatedFields = CreateRequirement.safeParse({
       requirement: formData.get('requirement'),
