@@ -58,7 +58,8 @@ export function AddRequire({ id,requirementypes }: { id: string; requirementypes
         <Dialog.Content className={styles.DialogContent}>
           <Dialog.Title className={styles.DialogTitle}>Add Requirement</Dialog.Title>
           <Dialog.Description className={styles.DialogDescription}>
-            Add requirements to this job. Click close when you're done.
+            {/* <></>Add requirements to this job. Click close when you're done. */}
+            Add requirements to this job. Click close when you&apos;re done.
           </Dialog.Description>
           <form action={dispatch} className="space-y-3">
             <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
