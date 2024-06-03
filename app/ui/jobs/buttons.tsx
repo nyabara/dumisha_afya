@@ -48,8 +48,8 @@ export function AddRequire({ id,requirementypes }: { id: string; requirementypes
   const initialState = { message:"", errors: {} };
   const dispatch = createRequirement.bind(null)
 
-  return (
-    <Dialog.Root>
+  return (<>
+  <Dialog.Root>
       <Dialog.Trigger asChild>
         <PlusIcon className="w-5" />
       </Dialog.Trigger>
@@ -148,6 +148,8 @@ export function AddRequire({ id,requirementypes }: { id: string; requirementypes
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  </>
+    
   );
 }
 
