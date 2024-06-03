@@ -1,8 +1,13 @@
+
 import Image from 'next/image';
-import { UpdateJob, DeleteJob } from '@/app/ui/jobs/buttons';
+import { UpdateJob, DeleteJob, AddRequire } from '@/app/ui/jobs/buttons';
 import JobStatus from '@/app/ui/jobs/status';
-import { formatDateToLocal} from '@/app/lib/utils';
-import { fetchFilteredJobs } from '@/app/lib/data';
+import { formatDateToLocal } from '@/app/lib/utils';
+import { fetchFilteredJobs, fetchRequirementTypes } from '@/app/lib/data';
+import {CheckIcon} from '@heroicons/react/24/outline';
+import styles from '@/app/ui/home.module.css';
+
+
 
 export default async function JobsTable({
   query,
@@ -12,6 +17,7 @@ export default async function JobsTable({
   currentPage: number;
 }) {
   const jobs = await fetchFilteredJobs(query, currentPage);
+  const requirementypes = await fetchRequirementTypes();
 
   return (
     <div className="mt-6 flow-root">
@@ -26,24 +32,14 @@ export default async function JobsTable({
                 <div className="flex items-center justify-between border-b pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      {/* <Image
-                        src={invoice.image_url}
-                        className="mr-2 rounded-full"
-                        width={28}
-                        height={28}
-                        alt={`${invoice.name}'s profile picture`}
-                      /> */}
-                      <p>{job.jobtitle}</p>
+                      <p>{job.position}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{job.place}</p>
+                    <p className="text-sm text-gray-500">{job.station}</p>
                   </div>
                   <JobStatus status={job.status} />
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    {/* <p className="text-xl font-medium">
-                      {formatCurrency(invoice.amount)}
-                    </p> */}
                     <p>{formatDateToLocal(job.datecreated)}</p>
                   </div>
                   <div className="flex justify-end gap-2">
@@ -58,13 +54,16 @@ export default async function JobsTable({
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  Title
+                  Position
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Location
+                  Station
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
-                  Requirement
+                  Requirements
+                </th>
+                <th scope="col" className="px-3 py-5 font-medium">
+                  Reponsibilities
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   Date
@@ -85,23 +84,37 @@ export default async function JobsTable({
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
-                      {/* <Image
-                        src={invoice.image_url}
-                        className="rounded-full"
-                        width={28}
-                        height={28}
-                        alt={`${invoice.name}'s profile picture`}
-                      /> */}
-                      <p>{job.jobtitle}</p>
+                      <p>{job.position}</p>
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {job.place}
+                    {job.station}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
-                    {job.requirement}
+                  <ul className={styles.list}>
+                    {job.requirement.map((requirement, index) => (
+                      <li key={index} className={styles.listItem}>
+                        <CheckIcon  className="w-5"/>
+                        <span className={styles.text}>{requirement}</span>
+                      </li>
+                    ))}
+                  </ul>
                     <div className="flex justify-end gap-3">
-                      <UpdateJob id={job.id} />
+                      <AddRequire id={job.id} requirementypes={requirementypes}/>
+                      
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3">
+                  {/* <ul className={styles.list}>
+                    {job.requirement.map((requirement, index) => (
+                      <li key={index} className={styles.listItem}>
+                        <CheckIcon  className="w-5"/>
+                        <span className={styles.text}>{requirement}</span>
+                      </li>
+                    ))}
+                  </ul> */}
+                    <div className="flex justify-end gap-3">
+                      <AddRequire id={job.id} requirementypes={requirementypes}/>
                       
                     </div>
                   </td>
@@ -113,11 +126,7 @@ export default async function JobsTable({
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      <UpdateJob id={
-                        job.id
-                        
-                      } />
-                      
+                      <UpdateJob id={job.id} />
                       <DeleteJob id={job.id} />
                     </div>
                   </td>

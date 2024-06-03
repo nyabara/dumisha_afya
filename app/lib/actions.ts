@@ -29,27 +29,40 @@ export async function authenticate(
 
 const FormSchema = z.object({
   id: z.string(),
-  jobtitle: z.string().refine(value => !!value, {
-    message: 'Please enter job title.',
+  position: z.string().refine(value => !!value, {
+    message: 'Please enter job position.',
     
   }),
-  place: z.string({
-    invalid_type_error: 'Please select job location.',
+  station: z.string({
+    invalid_type_error: 'Please select job station.',
+  }),
+  period: z.string().refine(value => !!value, {
+    message: 'Please enter job period.',
+    
+  }),
+  terms: z.string().refine(value => !!value, {
+    message: 'Please enter job terms and conditions.',
+    
   }),
   status: z.enum(['pending', 'closed'],{
     invalid_type_error: 'Please select job status.',
   }),
+ 
   date: z.string(),
 });
+
+
 
 const CreateJob = FormSchema.omit({ id: true, date: true});
 
 // This is temporary until @types/react-dom is updated
 export type State = {
   errors?: {
-    jobtitle?: string[];
-    place?: string[];
+    position?: string[];
+    station?: string[];
+    period?: string[];
     status?: string[];
+    terms?: string[];
   };
   message?: string | null;
 };
@@ -58,9 +71,12 @@ export async function createJob(prevState: State,formData: FormData) {
 
     // Validate form fields using Zod
     const validatedFields = CreateJob.safeParse({
-      jobtitle: formData.get('jobtitle'),
-      place: formData.get('place'),
+
+      position: formData.get('position'),
+      station: formData.get('station'),
+      period: formData.get('period'),
       status: formData.get('status'),
+      terms: formData.get('terms'),
     });
 
 
@@ -72,15 +88,17 @@ export async function createJob(prevState: State,formData: FormData) {
     }
 
       // Prepare data for insertion into the database
-  const { jobtitle, place, status } = validatedFields.data;
+  const { position, station,period, status,terms } = validatedFields.data;
+
+  console.log(validatedFields.data);
   
   const date = new Date().toISOString().split('T')[0];
 
 
   try{
     await sql`
-    INSERT INTO vacancies (name, location_id,status,date)
-    VALUES (${jobtitle}, ${place}, ${status}, ${date})
+    INSERT INTO vacancies (position, station_id, period, status, terms, date)
+    VALUES (${position}, ${station}, ${period}, ${status}, ${terms} ${date})
   `;
   }catch(error){
     return {
@@ -97,19 +115,20 @@ export async function createJob(prevState: State,formData: FormData) {
 // Use Zod to update the expected types
 const UpdateJob = FormSchema.omit({ id: true, date: true });
  
-// ...
- 
 export async function updateJob(id: string, formData: FormData) {
-  const { jobtitle, place, status } = UpdateJob.parse({
-    name: formData.get('jobtitle'),
-    place: formData.get('place'),
+  const { position, station, period, status, terms } = UpdateJob.parse({
+
+    position: formData.get('position'),
+    station: formData.get('station'),
+    period: formData.get('period'),
     status: formData.get('status'),
+    terms: formData.get('terms'),
   });
  
   try{
     await sql`
     UPDATE vacancies
-    SET name = ${jobtitle}, location_id = ${place}, status = ${status}
+    SET position = ${position}, station_id = ${station}, period =${period}, status = ${status}, terms = ${terms}
     WHERE id = ${id}
   `;
   } catch(error){
@@ -124,6 +143,70 @@ export async function updateJob(id: string, formData: FormData) {
 
 }
 
+
+const RequirementFormSchema = z.object({
+  id: z.string(),
+  requirement: z.string().refine(value => !!value, {
+    message: 'Please enter requirement.',
+    
+  }),
+  position_id: z.string().refine(value => !!value, {
+    message: 'Must have job selected.',
+    
+  }),
+  rqvtype: z.string({
+    invalid_type_error: 'Please select type.',
+  }),
+});
+
+export type RqState = {
+  errors?: {
+    requirement?:string[];
+    position_id?: string[];
+    rqvtype?: string[];
+  };
+  message?: string | null;
+}
+
+const CreateRequirement = RequirementFormSchema.omit({ id: true});
+ 
+export async function createRequirement(prevState: RqState, formData: FormData) {
+    // Validate form fields using Zod
+    const validatedFields = CreateRequirement.safeParse({
+      requirement: formData.get('requirement'),
+      position_id: formData.get('position_id'),
+      rqvtype: formData.get('rqvtype'),
+    });
+
+
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: 'Missing Fields. Failed to Create Job Requirement.',
+      };
+    }
+
+      // Prepare data for insertion into the database
+    const { requirement,position_id, rqvtype } = validatedFields.data;
+
+
+
+    try{
+    await sql`
+    INSERT INTO requirements (requirement, position_id,rqtype_id)
+    VALUES (${requirement}, ${position_id}, ${rqvtype})
+    `;
+    }catch(error){
+    return {
+      message: 'Database Error: Failed to Create Job Requirement.',
+    };
+    }
+    revalidatePath('/dashboard/jobs');
+    revalidatePath('/dashboard');
+
+
+}
+
 export async function deleteJob(id: string) {
   try{
     await sql`DELETE FROM vacancies WHERE id = ${id}`;
@@ -133,4 +216,5 @@ export async function deleteJob(id: string) {
     };
   }
   revalidatePath('/dashboard/jobs');
+  revalidatePath('/dashboard');
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { RequirementField, JobForm, LocationField } from '@/app/lib/definitions';
+import { RequirementField, JobForm, Station } from '@/app/lib/definitions';
 import {
   CheckIcon,
   ClockIcon,
@@ -8,6 +8,8 @@ import {
   UserCircleIcon,
   CogIcon,
   MapPinIcon,
+  MoonIcon,
+  BellAlertIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
@@ -15,10 +17,10 @@ import { updateJob } from '@/app/lib/actions';
 
 export default function EditJobForm({
   job,
-  locations,
+  stations,
 }: {
   job: JobForm;
-  locations:LocationField[];
+  stations:Station[];
 }) {
 
   
@@ -31,17 +33,17 @@ export default function EditJobForm({
 
         {/* Job Title */}
         <div className="mb-4">
-          <label htmlFor="jobtitle" className="mb-2 block text-sm font-medium">
+          <label htmlFor="position" className="mb-2 block text-sm font-medium">
             Job Position
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
               <input
-                id="jobtitle"
-                name="jobtitle"
+                id="position"
+                name="position"
                 type="string"
-                defaultValue={job.jobtitle}
-                placeholder="Enter Job Position"
+                defaultValue={job.position}
+                placeholder="Enter Position"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               />
               <CogIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
@@ -51,28 +53,87 @@ export default function EditJobForm({
 
         {/* Job Location */}
         <div className="mb-4">
-          <label htmlFor="place" className="mb-2 block text-sm font-medium">
-            Choose Attachment Place
+          <label htmlFor="station" className="mb-2 block text-sm font-medium">
+            Choose station Place
           </label>
           <div className="relative">
             <select
-              id="place"
-              name="place"
+              id="station"
+              name="station"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               defaultValue=""
             >
               <option value="" disabled>
                 Select Place of Attachment
               </option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.name}
+              {stations.map((station) => (
+                <option key={station.id} value={station.id}>
+                  {station.station}
                 </option>
               ))}
             </select>
             <MapPinIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
           </div>
         </div>
+
+
+             {/* Job Period */}
+             <div className="mb-4">
+          <label htmlFor="period" className="mb-2 block text-sm font-medium">
+            Period
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <input
+                id="period"
+                name="period"
+                placeholder="Enter Period"
+                defaultValue={job.period}
+                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                aria-describedby="period-error"
+              />
+              <MoonIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            </div>
+          </div>
+          <div id="period-error" aria-live="polite" aria-atomic="true">
+            {/* {state.errors?.period &&
+              state.errors.period.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))} */}
+          </div>
+        </div>
+
+
+                {/* Job Terms */}
+                <div className="mb-4">
+          <label htmlFor="terms" className="mb-2 block text-sm font-medium">
+            Terms and Conditions
+          </label>
+          <div className="relative mt-2 rounded-md">
+            <div className="relative">
+              <textarea
+                id="terms"
+                name="terms"
+                placeholder="Enter Terms and Conditions"
+                defaultValue={job.terms}
+                className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                aria-describedby="terms-error"
+              />
+              <BellAlertIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            </div>
+          </div>
+          <div id="terms-error" aria-live="polite" aria-atomic="true">
+            {/* {state.errors?.terms &&
+              state.errors.terms.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))} */}
+          </div>
+        </div>
+
 
         {/* Job Status */}
         <fieldset>

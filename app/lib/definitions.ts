@@ -5,41 +5,57 @@ export type User = {
     password: string
 };
 
-export type LocationField = {
+export type Station = {
     id: string;
-    name: string;
+    station: string;
   };
 
 export type Vacancy = {
     id: string;
-    name: string;
-    location_id: string;
+    position: string;
+    station_id: string;
     // In TypeScript, this is called a string union type.
     // It means that the "status" property can only be one of the two strings: 'pending' or 'closed'.
+    period: string;
     status: 'pending' | 'closed';
     date: string;
+    terms: string;
 };
-export type Requirement = {
-    id: string;
-    vacancy_id: string;
-    name:string
+
+export type Responsibility = {
+  id: string;
+  responsibility: string;
+  position_id : string;
 }
 
+export type Requirement = {
+  id: string;
+  position_id: string;
+  requirement:string;
+  rqtype_id: string;
+}
+
+export type RequirementType = {
+  id: string;
+  requirement_type: string;
+}
 
 export type RequirementValue = {
     id: string;
-    name:string;
+    requirement_value:string;
     requirement_id:string;
 }
 
 export type JobsTable = {
     id: string;
-    jobtitle: string;
-    place: string;
+    position: string;
+    station: string;
+    period: string;
     datecreated: string;
-    requirement: string;
+    requirement: string[];
+    responsibility: string[];
     status: 'pending' | 'paid';
-    subject:string;
+    terms: string;
 }
 
 export type RequirementField = {
@@ -50,9 +66,11 @@ export type RequirementField = {
 
   export type JobForm = {
     id: string;
-    jobtitle: string;
-    location_id: string;
+    position: string;
+    station_id: string;
+    period : string;
     status: 'pending' | 'closed';
+    terms: string;
   };
 
 

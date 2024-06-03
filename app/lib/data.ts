@@ -7,8 +7,9 @@ import {
     JobsTable,
     User,
     RequirementField,
-    LocationField,
-    JobForm
+    Station,
+    JobForm,
+    RequirementType
 } from './definitions';
 
 
@@ -16,13 +17,12 @@ import {
 
 export async function fetchJobCount() {
   noStore
-  // Add noStore() here to prevent the response from being cached.
+  // Add noStore() here to prevent th e response from being cached.
   // This is equivalent to in fetch(..., {cache: 'no-store'}).
 
   try {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
-
     // console.log('Fetching revenue data...');
     // await new Promise((resolve) => setTimeout(resolve, 3000));
 
@@ -56,22 +56,19 @@ export async function getJobs() {
     const data = await sql<JobsTable>`
       SELECT
         vc.id,
-        vc.name AS jobtitle,
-        loc.name AS place,
+        vc.position,
+        sta.station,
         vc.date AS datecreated,
-        rq.name AS requirement,
+        vc.period,
+        
         vc.status,
-        rqv.name AS subject
+        vc.terms
       FROM
         vacancies AS vc
       LEFT JOIN
-        locations as loc on vc.location_id=loc.id
-      LEFT JOIN
-        requirements AS rq ON vc.id = rq.vacancy_id
-      LEFT JOIN
-        requirement_values AS rqv ON rq.id = rqv.requirement_id
+        stations as sta on vc.station_id=sta.id
     `;
-    console.log('Query result:', data); // Log the data object
+    console.log('Query jobs result:', data); // Log the data object
     console.log('Rows:', data.rows);
     
     return data.rows;
@@ -122,30 +119,35 @@ export async function fetchFilteredJobs(query: string,currentPage: number,) {
     
     const jobs = await sql<JobsTable>
     `SELECT
-        vc.id,
-        vc.name AS jobtitle,
-        loc.name AS place,
-        vc.date AS datecreated,
-        rq.name AS requirement,
-        vc.status,
-        rqv.name AS subject
-      FROM
-        vacancies AS vc
-      LEFT JOIN
-        locations as loc on vc.location_id=loc.id
-      LEFT JOIN
-        requirements AS rq ON vc.id = rq.vacancy_id
-      LEFT JOIN
-        requirement_values AS rqv ON rq.id = rqv.requirement_id
-      WHERE 
-        vc.name ILIKE ${`%${query}%`} OR
-        loc.name ILIKE ${`%${query}%`} OR
-        vc.date ::text ILIKE ${`%${query}%`} OR
-        rq.name ILIKE ${`%${query}%`} OR
-        vc.status ILIKE ${`%${query}%`} OR
-        rqv.name ILIKE ${`%${query}%`}
-      ORDER BY vc.date DESC
-      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    vc.id,
+    vc.position,
+    sta.station,
+    vc.period,
+    vc.date AS datecreated,
+    COALESCE(req_data.requirement, ARRAY[]::text[]) AS requirement,
+    vc.status
+  FROM
+    vacancies AS vc
+  LEFT JOIN
+    stations as sta on vc.station_id=sta.id
+  LEFT JOIN (
+      SELECT 
+          req.position_id,
+          array_agg(req.requirement) AS requirement
+      FROM 
+          requirements AS req
+      GROUP BY 
+          req.position_id
+      ) AS req_data ON vc.id = req_data.position_id
+ 
+  WHERE 
+    vc.position ILIKE ${`%${query}%`} OR
+    sta.station ILIKE ${`%${query}%`} OR
+    vc.date ::text ILIKE ${`%${query}%`} OR
+    vc.status ILIKE ${`%${query}%`} OR
+    array_to_string(req_data.requirement, ', ') ILIKE ${`%${query}%`}
+  ORDER BY vc.date DESC
+  LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
       `;
     return jobs.rows;
     }
@@ -164,18 +166,15 @@ export async function fetchJobsPages(query: string) {
     FROM
         vacancies AS vc
       LEFT JOIN
-        locations as loc on vc.location_id=loc.id
+        stations as sta on vc.station_id=sta.id
       LEFT JOIN
-        requirements AS rq ON vc.id = rq.vacancy_id
-      LEFT JOIN
-        requirement_values AS rqv ON rq.id = rqv.requirement_id
+        requirements AS rq ON vc.id = rq.position_id
       WHERE 
-        vc.name ILIKE ${`%${query}%`} OR
-        loc.name ILIKE ${`%${query}%`} OR
+        vc.position ILIKE ${`%${query}%`} OR
+        sta.station ILIKE ${`%${query}%`} OR
         vc.date ::text ILIKE ${`%${query}%`} OR
-        rq.name ILIKE ${`%${query}%`} OR
-        vc.status ILIKE ${`%${query}%`} OR
-        rqv.name ILIKE ${`%${query}%`}
+        rq.requirement ILIKE ${`%${query}%`} OR
+        vc.status ILIKE ${`%${query}%`}
   `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
@@ -186,13 +185,33 @@ export async function fetchJobsPages(query: string) {
   }
 }
 
+export async function fetchRequirementTypes() {
+  noStore
+  try {
+    const data = await sql<RequirementType>`
+      SELECT
+        id,
+        requirement_type
+      FROM requirement_types
+      ORDER BY requirement_type ASC
+    `;
+
+    const requirementtypes = data.rows;
+    console.log(requirementtypes);
+    return requirementtypes;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch all requirementtypes.');
+  }
+}
+
 export async function fetchRequirements() {
   noStore
   try {
     const data = await sql<RequirementField>`
       SELECT
         id,
-        name
+        requirement
       FROM requirements
       ORDER BY name ASC
     `;
@@ -210,12 +229,12 @@ export async function fetchRequirements() {
 export async function fetchLocations() {
   noStore
   try {
-    const data = await sql<LocationField>`
+    const data = await sql<Station>`
       SELECT
         id,
-        name
-      FROM locations
-      ORDER BY name ASC
+        station
+      FROM stations
+      ORDER BY station ASC
     `;
 
     const requirements = data.rows;
@@ -245,9 +264,11 @@ export async function getUser(email: string) {
       const data = await sql<JobForm>`
         SELECT
         vacancies.id,
-        vacancies.name as jobtitle,
-        vacancies.location_id,
-        vacancies.status
+        vacancies.position,
+        vacancies.station_id,
+        vacancies.period,
+        vacancies.status,
+        vacancies.terms
         FROM vacancies
         WHERE vacancies.id = ${id};
       `;

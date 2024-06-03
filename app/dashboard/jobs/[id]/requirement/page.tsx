@@ -1,11 +1,11 @@
 import Form from '@/app/ui/jobs/edit-form';
-import Breadcrumbs from '@/app/ui/jobs/breadcrumbs';
+import AddRequirement from '@/app/ui/jobs/requirement-dialog';
 import { fetchJobById,fetchLocations } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
  
 export default async function Page({ params }: { params: { id: string } }) {
     const id = params.id;
-    const [job, stations] = await Promise.all([
+    const [job, locations] = await Promise.all([
         fetchJobById(id),
         fetchLocations(),
       ]);
@@ -17,17 +17,8 @@ export default async function Page({ params }: { params: { id: string } }) {
   return (
     
     <main>
-      <Breadcrumbs
-        breadcrumbs={[
-          { label: 'Jobs', href: '/dashboard/jobs' },
-          {
-            label: 'Edit Job',
-            href: `/dashboard/jobs/${id}/edit`,
-            active: true,
-          },
-        ]}
-      />
-      <Form job={job}  stations={stations}/>
+      <AddRequirement/>
+
     </main>
   );
 }

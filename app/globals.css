@@ -16,3 +16,8 @@ input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+:root {
+
+ --black-a1: rgba(0, 0, 0, 0.05);
+ --black-a2: rgba(0, 0, 0, 0.1);}

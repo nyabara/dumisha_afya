@@ -41,11 +41,11 @@ export default async function LatestJobs() {
                   /> */}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold md:text-base">
-                      {job.jobtitle}
+                      {job.position}
                       
                     </p>
                     <p className="hidden text-sm text-gray-500 sm:block">
-                      {job.place}
+                      {job.station}
                     </p>
                   </div>
                 </div>

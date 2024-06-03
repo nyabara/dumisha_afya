@@ -4,7 +4,7 @@ import { fetchLocations } from '@/app/lib/data';
  
 export default async function Page() {
   //const requirements= await fetchRequirements();
-  const locations= await fetchLocations();
+  const stations= await fetchLocations();
  // const requirements= await fetchRequirements();
  
   return (
@@ -19,7 +19,7 @@ export default async function Page() {
           },
         ]}
       />
-      <Form locations={locations} />
+      <Form stations={stations} />
     </main>
   );
 }
