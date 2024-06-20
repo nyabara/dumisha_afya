@@ -1,15 +1,15 @@
 import { sql } from '@vercel/postgres';
 import { unstable_noStore as noStore } from 'next/cache';
 import {
-    Vacancy,
-    Requirement,
     JobCount,
     JobsTable,
     User,
-    RequirementField,
+    Requirement,
     Station,
     JobForm,
-    RequirementType
+    RequirementType,
+    JobGroup,
+    Responsibility
 } from './definitions';
 
 
@@ -31,7 +31,7 @@ export async function fetchJobCount() {
         DATE_TRUNC('month', date) AS month,
         COUNT(*) AS job_count
     FROM 
-        vacancies
+        jobs
     WHERE 
         date >= DATE_TRUNC('year', CURRENT_DATE) - INTERVAL '11 months'
     GROUP BY 
@@ -55,18 +55,22 @@ export async function getJobs() {
   try {
     const data = await sql<JobsTable>`
       SELECT
-        vc.id,
-        vc.position,
+        jb.id,
+        jb.position,
         sta.station,
-        vc.date AS datecreated,
-        vc.period,
-        
-        vc.status,
-        vc.terms
+        jbg.job_group,
+        jb.date AS datecreated,
+        jb.period,
+        jb.status,
+        tms.term
       FROM
-        vacancies AS vc
+        jobs AS jb
       LEFT JOIN
-        stations as sta on vc.station_id=sta.id
+        stations as sta on jb.station_id=sta.id
+      LEFT JOIN 
+        job_groups as jbg on jb.group_id=jbg.id
+      LEFT JOIN
+        terms as tms on jb.term_id=tms.id
     `;
     console.log('Query jobs result:', data); // Log the data object
     console.log('Rows:', data.rows);
@@ -84,11 +88,11 @@ export async function fetchCardData() {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
     // how to initialize multiple queries in parallel with JS.
-    const jobCountPromise = sql`SELECT COUNT(*) FROM vacancies`;
+    const jobCountPromise = sql`SELECT COUNT(*) FROM jobs`;
     const jobStatusPromise = sql`SELECT
          SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS "pending",
          SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS "closed"
-         FROM vacancies`;
+         FROM jobs`;
 
     const data = await Promise.all([
       jobCountPromise,
@@ -117,38 +121,41 @@ export async function fetchFilteredJobs(query: string,currentPage: number,) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try{
     
-    const jobs = await sql<JobsTable>
-    `SELECT
-    vc.id,
-    vc.position,
-    sta.station,
-    vc.period,
-    vc.date AS datecreated,
-    COALESCE(req_data.requirement, ARRAY[]::text[]) AS requirement,
-    vc.status
-  FROM
-    vacancies AS vc
-  LEFT JOIN
-    stations as sta on vc.station_id=sta.id
-  LEFT JOIN (
-      SELECT 
+    const jobs = await sql<JobsTable>`
+      SELECT
+        jb.id,
+        jb.position,
+        sta.station,
+        jbg.job_group,
+        jb.period,
+        jb.date AS datecreated,
+        COALESCE(req_data.requirement, ARRAY[]::text[]) AS requirement,
+        jb.status
+      FROM
+        jobs AS jb
+      LEFT JOIN
+        stations as sta on jb.station_id=sta.id
+      LEFT JOIN 
+        job_groups as jbg on jb.group_id=jbg.id
+      LEFT JOIN (
+        SELECT 
           req.position_id,
           array_agg(req.requirement) AS requirement
-      FROM 
+        FROM 
           requirements AS req
       GROUP BY 
           req.position_id
-      ) AS req_data ON vc.id = req_data.position_id
+      ) AS req_data ON jb.id = req_data.position_id
  
-  WHERE 
-    vc.position ILIKE ${`%${query}%`} OR
-    sta.station ILIKE ${`%${query}%`} OR
-    vc.date ::text ILIKE ${`%${query}%`} OR
-    vc.status ILIKE ${`%${query}%`} OR
-    array_to_string(req_data.requirement, ', ') ILIKE ${`%${query}%`}
-  ORDER BY vc.date DESC
-  LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-      `;
+      WHERE 
+        jb.position ILIKE ${`%${query}%`} OR
+        sta.station ILIKE ${`%${query}%`} OR
+        jb.date ::text ILIKE ${`%${query}%`} OR
+        jb.status ILIKE ${`%${query}%`} OR
+        array_to_string(req_data.requirement, ', ') ILIKE ${`%${query}%`}
+      ORDER BY jb.date DESC
+      LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
+    `;
     return jobs.rows;
     }
     catch(error)
@@ -162,20 +169,22 @@ export async function fetchFilteredJobs(query: string,currentPage: number,) {
 export async function fetchJobsPages(query: string) {
   noStore
   try {
-    const count = await sql`SELECT COUNT(*)
-    FROM
-        vacancies AS vc
+    const count = await sql`
+      SELECT 
+        COUNT(*)
+      FROM
+        jobs AS jb
       LEFT JOIN
-        stations as sta on vc.station_id=sta.id
+        stations as sta on jb.station_id=sta.id
       LEFT JOIN
-        requirements AS rq ON vc.id = rq.position_id
+        requirements AS rq ON jb.id = rq.position_id
       WHERE 
-        vc.position ILIKE ${`%${query}%`} OR
+        jb.position ILIKE ${`%${query}%`} OR
         sta.station ILIKE ${`%${query}%`} OR
-        vc.date ::text ILIKE ${`%${query}%`} OR
+        jb.date ::text ILIKE ${`%${query}%`} OR
         rq.requirement ILIKE ${`%${query}%`} OR
-        vc.status ILIKE ${`%${query}%`}
-  `;
+        jb.status ILIKE ${`%${query}%`}
+    `;
 
     const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
     return totalPages;
@@ -208,12 +217,14 @@ export async function fetchRequirementTypes() {
 export async function fetchRequirements() {
   noStore
   try {
-    const data = await sql<RequirementField>`
+    const data = await sql<Requirement>`
       SELECT
         id,
-        requirement
+        position_id,
+        requirement,
+        rqtype_id
       FROM requirements
-      ORDER BY name ASC
+      ORDER BY requirement ASC
     `;
 
     const requirements = data.rows;
@@ -222,6 +233,26 @@ export async function fetchRequirements() {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch all requirements.');
+  }
+}
+
+export async function fetchJobGroups() {
+  noStore
+  try {
+    const data = await sql<JobGroup>`
+      SELECT
+        id,
+        job_group
+      FROM job_groups
+      ORDER BY job_group ASC
+    `;
+
+    const jobGroups = data.rows;
+    console.log(jobGroups);
+    return jobGroups;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch all jobGroups.');
   }
 }
 
@@ -263,14 +294,14 @@ export async function getUser(email: string) {
       
       const data = await sql<JobForm>`
         SELECT
-        vacancies.id,
-        vacancies.position,
-        vacancies.station_id,
-        vacancies.period,
-        vacancies.status,
-        vacancies.terms
-        FROM vacancies
-        WHERE vacancies.id = ${id};
+        jobs.id,
+        jobs.position,
+        jobs.group_id,
+        jobs.station_id,
+        jobs.period,
+        jobs.status
+        FROM jobs
+        WHERE jobs.id = ${id};
       `;
       // const invoice = data.rows.map((invoice) => ({
       //   ...invoice,
@@ -284,5 +315,97 @@ export async function getUser(email: string) {
       console.error('Database Error:', error);
       throw new Error('Failed to fetch job.');
     }
+  }
+
+
+  export async function fetchRequirementsByJobGroup(id: string) {
+    noStore
+    if (id){
+      try {
+        const data = await sql<Requirement>`
+          SELECT
+            requirements.id,
+            requirements.requirement,
+            requirements.position_id,
+            requirements.group_id,
+            requirements.rqtype_id
+          FROM requirements
+          WHERE requirements.group_id = ${id};
+        `;
+    
+        const requirements = data.rows;
+        console.log(requirements);
+        return requirements;
+      } catch (err) {
+        console.error('Database Error:', err);
+        throw new Error('Failed to fetch all requirements.');
+      }
+
+    }else{
+      try {
+        const data = await sql<Requirement>`
+          SELECT
+            requirements.id,
+            requirements.requirement,
+            requirements.position_id,
+            requirements.group_id,
+            requirements.rqtype_id
+          FROM requirements
+        `;
+    
+        const requirements = data.rows;
+        console.log(requirements);
+        return requirements;
+      } catch (err) {
+        console.error('Database Error:', err);
+        throw new Error('Failed to fetch all requirements.');
+      }
+    }
+  
+  }
+
+
+  export async function fetchResponsibilityByJobGroup(id: string) {
+    noStore
+    if (id){
+      try {
+        const data = await sql<Responsibility>`
+          SELECT
+            responsibilities.id,
+            responsibilities.responsibility,
+            responsibilities.position_id,
+            responsibilities.group_id
+          FROM responsibilities
+          WHERE responsibilities.group_id = ${id};
+        `;
+    
+        const responsibilities = data.rows;
+        console.log(responsibilities);
+        return responsibilities;
+      } catch (err) {
+        console.error('Database Error:', err);
+        throw new Error('Failed to fetch all responsibilities.');
+      }
+
+    }else{
+      try {
+        const data = await sql<Responsibility>`
+          SELECT
+            responsibilities.id,
+            responsibilities.responsibility,
+            responsibilities.position_id,
+            responsibilities.group_id
+          FROM responsibilities
+        `;
+    
+        const responsibilities = data.rows;
+        console.log(responsibilities);
+        return responsibilities;
+      } catch (err) {
+        console.error('Database Error:', err);
+        throw new Error('Failed to fetch all responsibilities.');
+      }
+    }
+  
   }
 

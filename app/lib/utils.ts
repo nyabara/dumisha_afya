@@ -1,4 +1,4 @@
-import { JobCount } from './definitions';
+import { JobCount, Requirement } from './definitions';
 
 export const formatDateToLocal = (
     dateStr: string,
@@ -75,3 +75,23 @@ export const formatDateToLocal = (
   
     return { yAxisLabels, topLabel };
   };
+
+  export const generateRequirements = (requirement_id:string[], requirements:Requirement[]) => {
+    
+    const generetaed_requirements : String[] = [];
+
+    requirements.forEach(requirement => {
+      if (requirement_id.includes(requirement.requirement)) {
+        generetaed_requirements.push(requirement.requirement);
+      }
+     
+    });
+    // Step 2: Add elements from requirement_id that are not in requirements
+    requirement_id.forEach(id => {
+      const existsInRequirements = requirements.some(requirement => requirement.requirement === id);
+      if (!existsInRequirements) {
+        generetaed_requirements.push(id);
+      }
+    });
+    return generetaed_requirements;
+  }

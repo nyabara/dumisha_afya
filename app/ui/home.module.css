@@ -78,6 +78,14 @@
   line-height: 1.5;
 }
 
+.pointer-events-none {
+  pointer-events: none; /* Disable clicks */
+}
+
+.opacity-50 {
+  opacity: 0.5; /* Make it look disabled */
+}
+
 
 
 @keyframes overlayShow {

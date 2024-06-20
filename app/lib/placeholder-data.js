@@ -9,33 +9,56 @@ const users = [
  
   const stations = [
     {
-    id: "db835c2f-642f-41df-9791-11a40e6398a7",
-    station: "Bungoma"
+    id: 'db835c2f-642f-41df-9791-11a40e6398a7',
+    station: 'Bungoma',
   },
   {
     id: "7e7b22be-4911-49a2-a857-996fb16e9e16",
-    station: "Busia"
+    station: "Busia",
   }]
 
-  const vacancies = [
+  const groups = [
+    {
+      id: '678bd3f4-b934-4203-bef0-1468c1297753',
+      job_group: 'ICT'
+    
+    },
+    {
+      id: 'd6e15727-9fe1-4961-8c5b-ea44a9bd81aa',
+      job_group: 'Monitoring and Evaluation'
+    }
+  ]
+  
+  const terms = [
+    {
+      id: "06cba7c1-5ea8-42dd-8457-970ba7cba6be",
+      term:"The successful candidate will be employed on a 7-Months Locum basis with a competitive salary and allowances."
+    },
+   
+  ]
+
+  const jobs = [
     {
       id:'CC27C14A-0ACF-4F4A-A6C9-D45682C144B9',
       position: 'ICT Administrator II',
       station_id: stations[0].id,
+      group_id: stations[0].id,
+      term_id: terms[0].id,
       period: 'SEVEN (7) MONTHS',
       status:'pending',
       date:'2024-05-22',
-      terms: 'The successful candidate will be employed on a 7-Months Locum basis with a competitive salary and allowances.',
     },
     {
-      id:'678bd3f4-b934-4203-bef0-1468c1297753',
-      position: 'Locum HTS Counsellor',
+      id:'03cee662-ca4e-4523-9fa3-63462f59ce49',
+      position: 'Data Officer II',
       station_id: stations[1].id,
-      period: 'SEVEN (7) MONTHS',
+      group_id: stations[1].id,
+      term_id: terms[0].id,
+      period: 'Three months',
       status:'pending',
       date:'2024-05-03',
-      terms: 'The successful candidate will be employed on a 7-Months Locum basis with a competitive salary and allowances.',
     },
+
   ];
 
 
@@ -50,11 +73,12 @@ const users = [
     {
       id:'3958dc9e-742f-4377-85e9-fec4b6a6442a',
       requirement:'Bachelors Degree in Computer Science',
-      position_id:vacancies[0].id,
+      position_id:jobs[0].id,
+      group_id: stations[0].id,
       rqtype_id:requirement_types[0].id,
 
     },
-  ];
+    ];
 
 
   const requirement_values = [
@@ -66,9 +90,12 @@ const users = [
 
   module.exports = {
     users,
-    vacancies,
-    requirements,
     stations,
-    requirement_values,
+    groups,
+    terms,
+    jobs,
     requirement_types,
+    requirements,
+    requirement_values,
+    
   };

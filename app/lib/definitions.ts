@@ -10,16 +10,23 @@ export type Station = {
     station: string;
   };
 
-export type Vacancy = {
+export type JobGroup = {
+    id: string;
+    job_group : string;
+  }
+
+export type Job = {
     id: string;
     position: string;
     station_id: string;
+    job_group: string;
+    period: string;
     // In TypeScript, this is called a string union type.
     // It means that the "status" property can only be one of the two strings: 'pending' or 'closed'.
-    period: string;
     status: 'pending' | 'closed';
     date: string;
-    terms: string;
+    term: string;
+
 };
 
 export type Responsibility = {
@@ -30,14 +37,20 @@ export type Responsibility = {
 
 export type Requirement = {
   id: string;
-  position_id: string;
   requirement:string;
+  position_id: string;
+  group_id:string;
   rqtype_id: string;
 }
 
 export type RequirementType = {
   id: string;
   requirement_type: string;
+}
+export type Terms = {
+  id: string
+  term: string
+
 }
 
 export type RequirementValue = {

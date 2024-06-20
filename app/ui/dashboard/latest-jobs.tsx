@@ -1,7 +1,6 @@
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { lusitana } from '@/app/ui/fonts';
-import { JobsTable } from '@/app/lib/definitions';
 import { getJobs } from '@/app/lib/data';
 
 

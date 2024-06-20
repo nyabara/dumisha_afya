@@ -1,7 +1,9 @@
 const { db } = require('@vercel/postgres');
 const {
     users,
-    vacancies,
+    groups,
+    terms,
+    jobs,
     requirements,
     stations,
     requirement_values,
@@ -78,39 +80,109 @@ async function seedStations(client){
     }
 }
 
-async function seedVacancies(client){
+
+async function seedJobGroups(client){
+    try {
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+        //Create the users table
+        const createTable = await client.sql`
+        CREATE TABLE IF NOT EXISTS job_groups(
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            job_group VARCHAR(255) NOT NULL UNIQUE
+        );`;
+        console.log(`Created "job_group" table`);
+
+        //Insert data into the "users" table
+        const insertedJopGroup = await Promise.all(
+            groups.map(async (jobgroup)=>{
+    
+                return client.sql`
+                INSERT INTO job_groups (id,job_group)
+                VALUES (${jobgroup.id},${jobgroup.job_group})
+                ON CONFLICT (id) DO NOTHING;`;
+            }),
+        );
+        console.log(`Seeded ${insertedJopGroup.length} stations`);
+        return {
+            createTable,
+            jobGroups: insertedJopGroup
+        };
+    } catch (error){
+        console.error('Error seeding jobgroups', error);
+        throw error;
+    }
+}
+
+async function seedTerms(client){
+    try {
+        await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+        //Create the terms table
+        const createTable = await client.sql`
+        CREATE TABLE IF NOT EXISTS terms(
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            term VARCHAR(255) NOT NULL UNIQUE
+        );`;
+        console.log(`Created "terms" table`);
+
+        //Insert data into the "terms" table
+        const insertedTerms = await Promise.all(
+            terms.map(async (term)=>{
+    
+                return client.sql`
+                INSERT INTO terms (id,term)
+                VALUES (${term.id},${term.term})
+                ON CONFLICT (id) DO NOTHING;`;
+            }),
+        );
+        console.log(`Seeded ${insertedTerms.length} terms`);
+        return {
+            createTable,
+            terms: insertedTerms
+        };
+    } catch (error){
+        console.error('Error seeding terms', error);
+        throw error;
+    }
+}
+
+async function seedJobs(client){
     try {
         await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
         const createTable = await client.sql`
-        CREATE TABLE IF NOT EXISTS vacancies(
+        CREATE TABLE IF NOT EXISTS jobs(
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             position VARCHAR(255) NOT NULL UNIQUE,
             station_id UUID NOT NULL,
+            group_id UUID NOT NULL,
+            term_id UUID NOT NULL,
             period VARCHAR(255) NOT NULL,
+            startDate VARCHAR(255) NOT NULL,
+            endDate VARCHAR(255) NOT NULL,
             status VARCHAR(255) NOT NULL,
-            date DATE NOT NULL,
-            terms VARCHAR(255) NOT NULL
+            date DATE NOT NULL
         );
         `;
 
-        console.log(`Created "vacancies" table`);
+        console.log(`Created "jobs" table`);
 
-        const insertedVacancies = await Promise.all(
-            vacancies.map(
-                (vacancy)=> client.sql`
-                INSERT INTO vacancies (id,position, station_id,period,status,date,terms)
-                VALUES (${vacancy.id},${vacancy.position},${vacancy.station_id},${vacancy.period},${vacancy.status}, ${vacancy.date},${vacancy.terms})
+        const insertedJobs = await Promise.all(
+            jobs.map(
+                (job)=> client.sql`
+                INSERT INTO jobs (id,position, station_id,group_id,term_id,period,startDate,endDate,status,date)
+                VALUES (${job.id},${job.position},${job.station_id},${job.group_id},${job.term_id},${job.period},${job.startDate},${job.endDate},${job.status}, ${job.date})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
         );
-        console.log(`Seeded ${insertedVacancies.length} vacancies`);
+        console.log(`Seeded ${insertedJobs.length} jobs`);
         return {
             createTable,
-            vacancies: insertedVacancies};
+            jobs: insertedJobs};
     }catch(error){
-            console.error('Error seeding vacancies:', error);
+            console.error('Error seeding jobs:', error);
             throw error;
         }
 }
@@ -156,6 +228,7 @@ async function seedRequirements(client){
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             requirement VARCHAR(255) NOT NULL,
             position_id UUID NOT NULL,
+            group_id UUID NOT NULL,
             rqtype_id UUID NOT NULL
         );
         `;
@@ -165,8 +238,8 @@ async function seedRequirements(client){
         const insertedRequirements = await Promise.all(
             requirements.map(
                 (requirement)=> client.sql`
-                INSERT INTO requirements (id,requirement, position_id,rqtype_id)
-                VALUES (${requirement.id},${requirement.requirement},${requirement.position_id},${requirement.rqtype_id})
+                INSERT INTO requirements (id,requirement, position_id,group_id,rqtype_id)
+                VALUES (${requirement.id},${requirement.requirement},${requirement.position_id}, ${requirement.group_id},${requirement.rqtype_id})
                 ON CONFLICT (id) DO NOTHING;
                 `,
             ),
@@ -180,6 +253,41 @@ async function seedRequirements(client){
             throw error;
         }
 }
+
+// async function seedResponsibilities(client){
+//     try {
+//         await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
+
+//         const createTable = await client.sql`
+//         CREATE TABLE IF NOT EXISTS responsibilities(
+//             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+//             responsibility VARCHAR(255) NOT NULL,
+//             position_id UUID NOT NULL,
+//             group_id UUID NOT NULL
+//         );
+//         `;
+
+//         console.log(`Created "requirements" table`);
+
+//         const insertedRequirements = await Promise.all(
+//             requirements.map(
+//                 (requirement)=> client.sql`
+//                 INSERT INTO requirements (id,requirement, position_id,group_id,rqtype_id)
+//                 VALUES (${requirement.id},${requirement.requirement},${requirement.position_id}, ${requirement.group_id},${requirement.rqtype_id})
+//                 ON CONFLICT (id) DO NOTHING;
+//                 `,
+//             ),
+//         );
+//         console.log(`Seeded ${insertedRequirements.length} requirements`);
+//         return {
+//             createTable,
+//             requirements: insertedRequirements};
+//     }catch(error){
+//             console.error('Error seeding requirements:', error);
+//             throw error;
+//         }
+// }
+
 
 async function seedRequirementValues(client){
     try {
@@ -219,7 +327,9 @@ async function main() {
   
     await seedUsers(client);
     await seedStations(client);
-    await seedVacancies(client);
+    await seedJobGroups(client);
+    await seedTerms(client);
+    await seedJobs(client);
     await seedRequirementType(client);
     await seedRequirements(client);
     await seedRequirementValues(client);
