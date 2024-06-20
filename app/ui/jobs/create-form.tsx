@@ -6,26 +6,18 @@ import { Station, JobGroup, Requirement, Responsibility } from '@/app/lib/defini
 import Link from 'next/link';
 import {
   CheckIcon,
-  ClockIcon,
   CogIcon,
   MapPinIcon,
   MoonIcon,
-  BellAlertIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
 import { createJob } from '@/app/lib/actions';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'
 
 
-import styles from '@/app/ui/home.module.css';
-import clsx from 'clsx';
-import { revalidatePath } from 'next/cache';
-import { UpdateJob, DeleteJob, AddRequire, UpdateRequirement } from '@/app/ui/jobs/buttons';
-import { useDebouncedCallback } from 'use-debounce';
-import { generateRequirements } from '@/app/lib/utils';
+
 
 export default function Form({
   stations,
