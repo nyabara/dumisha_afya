@@ -45,6 +45,8 @@ const users = [
       group_id: stations[0].id,
       term_id: terms[0].id,
       period: 'SEVEN (7) MONTHS',
+      startDate:'',
+      endDate:'',
       status:'pending',
       date:'2024-05-22',
     },
@@ -55,6 +57,8 @@ const users = [
       group_id: stations[1].id,
       term_id: terms[0].id,
       period: 'Three months',
+      startDate:'',
+      endDate:'',
       status:'pending',
       date:'2024-05-03',
     },
@@ -80,6 +84,16 @@ const users = [
     },
     ];
 
+    const responsibilities = [
+      {
+        id:'',
+        responsibility:'',
+        position_id:jobs[0].id,
+        group_id: stations[0].id,
+  
+      },
+      ];
+
 
   const requirement_values = [
     {
@@ -97,5 +111,6 @@ const users = [
     requirement_types,
     requirements,
     requirement_values,
+    responsibilities,
     
   };

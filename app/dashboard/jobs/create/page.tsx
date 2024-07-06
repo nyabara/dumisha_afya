@@ -21,8 +21,9 @@ export default async function Page({
 
  const responsibilities = await fetchResponsibilityByJobGroup(group_query);
 
- //console.log(requirements);
-
+ console.log(requirements);
+ console.log(responsibilities);
+ console.log(group_query);
  
   return (
     <main>

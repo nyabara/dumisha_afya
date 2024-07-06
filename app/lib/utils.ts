@@ -28,6 +28,22 @@ export const formatDateToLocal = (
 };
 
 
+export const formatPeriodDate = (
+  dateStr: string,
+  locale: string = 'en-US',
+) => {
+  const date = new Date(dateStr);
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  };
+  const formatter = new Intl.DateTimeFormat(locale, options);
+  return formatter.format(date);
+};
+
+
+
   export const generatePagination = (currentPage: number, totalPages: number) => {
     // If the total number of pages is 7 or less,
     // display all pages without any ellipsis.

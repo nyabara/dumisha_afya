@@ -23,7 +23,9 @@ export type Job = {
     period: string;
     // In TypeScript, this is called a string union type.
     // It means that the "status" property can only be one of the two strings: 'pending' or 'closed'.
-    status: 'pending' | 'closed';
+    startDate: string;
+    endDate: string;
+    status: 'Open' | 'Closed';
     date: string;
     term: string;
 
@@ -33,6 +35,7 @@ export type Responsibility = {
   id: string;
   responsibility: string;
   position_id : string;
+  group_id : string;
 }
 
 export type Requirement = {
@@ -67,7 +70,7 @@ export type JobsTable = {
     datecreated: string;
     requirement: string[];
     responsibility: string[];
-    status: 'pending' | 'paid';
+    status: 'Open' | 'Closed';
     terms: string;
 }
 
@@ -81,8 +84,13 @@ export type RequirementField = {
     id: string;
     position: string;
     station_id: string;
+    job_group: string;
     period : string;
-    status: 'pending' | 'closed';
+    requirement: Requirement[];
+    responsibility: Responsibility[];
+    startDate: string;
+    endDate: string;
+    status: 'Open' | 'Closed';
     terms: string;
   };
 

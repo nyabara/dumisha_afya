@@ -10,14 +10,12 @@ import {
   MapPinIcon,
   MoonIcon,
   PencilIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
 import { createJob } from '@/app/lib/actions';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import 'react-datepicker/dist/react-datepicker.css'
-
-
-
+import 'react-datepicker/dist/react-datepicker.css';
 
 export default function Form({
   stations,
@@ -37,9 +35,8 @@ export default function Form({
   const initialState = { message: '', errors: {} };
   const [state, dispatch] = useFormState(createJob, initialState);
 
-   //handling specific job group responsibility and requirements
-   const handleJobGroup = (group_id: string) => {
-    //console.log(group_id);
+  // Handling specific job group responsibility and requirements
+  const handleJobGroup = (group_id: string) => {
     const params = new URLSearchParams(searchParams);
     if (group_id) {
       params.set('group_query', group_id);
@@ -49,10 +46,8 @@ export default function Form({
     replace(`${pathname}?${params.toString()}`);
   };
 
-
-
-  //creating job requirement logics
-  const [responsibilityInputValue, setResponsibilityInputValue] = useState('');
+  // Creating job key roles and responsibilities logics
+  const [responsibilityInputValue, setResponsibilityInputValue] = useState<string>('');
   const [clickedResponsibilities, setClickedResponsibilities] = useState<string[]>([]);
 
   const handleResponsibilityClick = (id: string) => {
@@ -60,9 +55,10 @@ export default function Form({
   };
 
   const editJobResponsibility = (edit_responsibility: string) => {
-    console.log(edit_responsibility);
     setResponsibilityInputValue(edit_responsibility);
-    setClickedResponsibilities((prevClickedResponsibilities) => prevClickedResponsibilities.filter(responsibility => responsibility !== edit_responsibility));
+    setClickedResponsibilities((prevClickedResponsibilities) =>
+      prevClickedResponsibilities.filter(responsibility => responsibility !== edit_responsibility)
+    );
   };
 
   const handleResponsibilityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -76,19 +72,37 @@ export default function Form({
     }
     setResponsibilityInputValue(''); // Clear input value after processing
   };
-  
-  //creating job requirement logics
-  const [requirementInputValue, setRequirementInputValue] = useState('');
-  const [clickedRequiremets, setClickedRequirements] = useState<string[]>([]);
+
+  const handleAddAllResponsibilities = () => {
+    const availableResponsibilities = responsibilities
+      .map(responsibility => responsibility.responsibility)
+      .filter(responsibility => !clickedResponsibilities.includes(responsibility));
+    setClickedResponsibilities(prevClickedResponsibilities => [...prevClickedResponsibilities, ...availableResponsibilities]);
+  };
+
+  const handleDeleteResponsibility = (delete_responsibility: string) => {
+    setClickedResponsibilities((prevClickedResponsibilities) =>
+      prevClickedResponsibilities.filter(responsibility => responsibility !== delete_responsibility)
+    );
+  };
+
+  const handleDeleteAllResponsibilities = () => {
+    setClickedResponsibilities([]);
+  };
+  // Creating job requirement logics
+
+  const [requirementInputValue, setRequirementInputValue] = useState<string>('');
+  const [clickedRequirements, setClickedRequirements] = useState<string[]>([]);
 
   const handleRequirementClick = (id: string) => {
     setClickedRequirements((prevClickedRequirements) => [...prevClickedRequirements, id]);
   };
 
   const editJobRequirement = (edit_requirement: string) => {
-    console.log(edit_requirement);
     setRequirementInputValue(edit_requirement);
-    setClickedRequirements((prevClickedRequirements) => prevClickedRequirements.filter(requirement => requirement !== edit_requirement));
+    setClickedRequirements((prevClickedRequirements) =>
+      prevClickedRequirements.filter(requirement => requirement !== edit_requirement)
+    );
   };
 
   const handleRequirementChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -103,11 +117,41 @@ export default function Form({
     setRequirementInputValue(''); // Clear input value after processing
   };
 
- 
+  const handleAddAllRequirements = () => {
+    const availableRequirements = requirements
+      .map(requirement => requirement.requirement)
+      .filter(requirement => !clickedRequirements.includes(requirement));
+    setClickedRequirements(prevClickedRequirements => [...prevClickedRequirements, ...availableRequirements]);
+  };
+
+  const handleDeleteRequirement = (delete_requirement: string) => {
+    setClickedRequirements((prevClickedRequirements) =>
+      prevClickedRequirements.filter(requirement => requirement !== delete_requirement)
+    );
+  };
+
+  const handleDeleteAllRequirements = () => {
+    setClickedRequirements([]);
+  };
+
+
+  // Job Application period logic
+  const [jobApplicationPeriod, setJobApplicationPeriod] = useState({
+    startDate: '',
+    endDate: ''
+  });
+
+  const handleJobApplicationPeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setJobApplicationPeriod(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
 
   return (
     <form action={dispatch}>
-      <div className="rounded-md bg-white p-4 md:p-6 shadow-md">
+      <div className="rounded-md bg-white p-4 md:p-6 shadow-md break-words">
         {/* Job Position */}
         <div className="mb-4">
           <label htmlFor="position" className="mb-2 block text-sm font-medium text-gray-700">Position</label>
@@ -118,7 +162,7 @@ export default function Form({
                 name="position"
                 placeholder="Enter Position"
                 defaultValue=""
-                className="peer block w-full rounded-md border border-gray-300 py-2 pl-10 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                className="peer block w-full rounded-md border border-gray-300 py-2 pl-10 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 break-words"
                 aria-describedby="position-error"
               />
               <CogIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-blue-500" />
@@ -139,7 +183,7 @@ export default function Form({
             <select
               id="station"
               name="station"
-              className="peer block w-full cursor-pointer rounded-md border border-gray-300 py-2 pl-10 text-sm text-gray-700 focus:border-blue-500 focus:ring-blue-500"
+              className="peer block w-full cursor-pointer rounded-md border border-gray-300 py-2 pl-10 text-sm text-gray-700 focus:border-blue-500 focus:ring-blue-500 break-words"
               defaultValue=""
               aria-describedby="station-error"
             >
@@ -168,7 +212,7 @@ export default function Form({
                 name="period"
                 placeholder="Enter Period"
                 defaultValue=""
-                className="peer block w-full rounded-md border border-gray-300 py-2 pl-10 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                className="peer block w-full rounded-md border border-gray-300 py-2 pl-10 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 break-words"
                 aria-describedby="period-error"
               />
               <MoonIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-blue-500" />
@@ -182,13 +226,14 @@ export default function Form({
           </div>
         </div>
 
+        {/* Job Group */}
         <div className="mb-4">
           <label htmlFor="group_id" className="mb-2 block text-sm font-medium text-gray-700">Choose Job Group</label>
           <div className="relative">
             <select
               id="group_id"
               name="group_id"
-              className="peer block w-full cursor-pointer rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm text-gray-700 focus:border-blue-500 focus:ring-blue-500"
+              className="peer block w-full cursor-pointer rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm text-gray-700 focus:border-blue-500 focus:ring-blue-500 break-words"
               defaultValue=""
               onChange={(e) => handleJobGroup(e.target.value)}
               aria-describedby="group_id-error"
@@ -200,51 +245,43 @@ export default function Form({
             </select>
           </div>
         </div>
-        {/* Key Roles & Responsibilities:*/}
+
+
         <div className="mb-4">
-          <label htmlFor="requirements" className="mb-2 block text-sm font-medium text-gray-700">Key Roles & Responsibilities:</label>
+          <label htmlFor="requirements" className="mb-2 block text-sm font-medium text-gray-700">
+            Key Roles & Responsibilities:
+          </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
               <div className="mt-6 flow-root">
                 <div className="inline-block min-w-full align-middle">
                   <div className="rounded-lg bg-white p-2 md:pt-0 shadow-sm">
-                    <table className="hidden min-w-full text-gray-900 md:table" aria-describedby="responsibilities-error">
+                    <table className="min-w-full text-gray-900" aria-describedby="responsibilities-error">
                       <thead className="rounded-lg text-left text-sm font-normal text-gray-700">
                         <tr>
-                          <th scope="col" className="px-4 py-5 font-medium sm:pl-6">Available Key Roles & Responsibilities:</th>
-                          <th scope="col" className="px-3 py-5 font-medium">Added Key Roles & Responsibilities:</th>
+                          <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                            Available Key Roles & Responsibilities:
+                          </th>
+                          <th scope="col" className="px-3 py-5 font-medium">
+                            Actions
+                          </th>
+                          <th scope="col" className="px-3 py-5 font-medium">
+                            Added Key Roles & Responsibilities:
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white">
                         <tr className="w-full border-b py-3 text-sm last-of-type:border-none">
-                          <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                            <div className="flex items-center gap-3">
-                              <div className="mb-4">
-                                <label htmlFor="responsibilities" className="mb-2 block text-sm font-medium text-gray-700">Enter Key Roles & Responsibilities:</label>
-                                <div className="relative mt-2 rounded-md">
-                                  <textarea
-                                    id="responsibilities"
-                                    name="responsibilities"
-                                    placeholder="Enter Key Roles & Responsibilities:"
-                                    value={responsibilityInputValue}
-                                    className="peer block w-full rounded-md border border-gray-300 py-2 pl-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
-                                    aria-describedby="responsibilities-error"
-                                    onChange={handleResponsibilityChange}
-                                    onBlur={handleResponsibilityBlur}
-                                  />
-                                </div>
-                              </div>
-                            </div>
+                          <td className="whitespace-normal py-3 pl-6 pr-3">
                             <div aria-live="polite" aria-atomic="true">
-                              <ul className="list-disc pl-6">
+                              <ul className="list-disc pl-6 break-words">
                                 {responsibilities.map((responsibility, index) => (
                                   <li
                                     key={index}
-                                    className={`flex items-center gap-2 rounded-md p-3 text-sm font-medium cursor-pointer ${
-                                      clickedResponsibilities.includes(responsibility.responsibility)
-                                        ? 'bg-blue-100 text-blue-600 pointer-events-none opacity-50'
-                                        : 'bg-gray-50 hover:bg-blue-100 hover:text-blue-600'
-                                    }`}
+                                    className={`flex items-center gap-2 rounded-md p-3 text-sm font-medium cursor-pointer break-words ${clickedResponsibilities.includes(responsibility.responsibility)
+                                      ? 'bg-blue-100 text-blue-600 pointer-events-none opacity-50'
+                                      : 'bg-gray-50 hover:bg-blue-100 hover:text-blue-600'
+                                      }`}
                                     onClick={() =>
                                       !clickedResponsibilities.includes(responsibility.responsibility) &&
                                       handleResponsibilityClick(responsibility.responsibility)
@@ -257,14 +294,37 @@ export default function Form({
                               </ul>
                             </div>
                           </td>
-                          <td className="whitespace-nowrap px-3 py-3">
-                            <ul className="list-disc pl-6">
+                          <td className="whitespace-normal px-3 py-3 flex flex-col items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleAddAllResponsibilities}
+                              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                              Add All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDeleteAllResponsibilities}
+                              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            >
+                              Delete All
+                            </button>
+                          </td>
+                          <td className="whitespace-normal px-3 py-3">
+                            <ul className="list-disc pl-6 break-words">
                               {clickedResponsibilities.map((responsibility, index) => (
-                                <li key={index} className="flex items-center gap-2">
+                                <li key={index} className="flex items-center gap-2 break-words">
                                   <CheckIcon className="w-5 text-blue-600" />
                                   <span>{responsibility}</span>
                                   <input type="hidden" name="responsibilities" value={responsibility} />
-                                  <PencilIcon className="w-5 text-blue-600 cursor-pointer" onClick={() => editJobResponsibility(responsibility)} />
+                                  <PencilIcon
+                                    className="w-5 text-blue-600 cursor-pointer hover:text-blue-800"
+                                    onClick={() => editJobResponsibility(responsibility)}
+                                  />
+                                  <TrashIcon
+                                    className="w-5 text-red-600 cursor-pointer hover:text-red-800"
+                                    onClick={() => handleDeleteResponsibility(responsibility)}
+                                  />
                                 </li>
                               ))}
                             </ul>
@@ -272,67 +332,87 @@ export default function Form({
                         </tr>
                       </tbody>
                     </table>
+
+
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          <div className="mt-4">
+            <label
+              htmlFor="responsibilityinput"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Enter Key Roles & Responsibilities:
+            </label>
+            <div className="relative mt-2 rounded-md">
+              <textarea
+                id="responsibilityinput"
+                name="responsibilityinput"
+                placeholder="Enter Key Roles & Responsibilities:"
+                value={responsibilityInputValue}
+                className="peer block w-full min-h-[8rem] max-h-[16rem] rounded-md border border-gray-300 py-2 pl-3 pr-12 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 resize-y"
+                aria-describedby="responsibilities-error"
+                onChange={handleResponsibilityChange}
+              />
+              <button
+                type="button"
+                onClick={handleResponsibilityBlur}
+                className="absolute bottom-2 right-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Submit
+              </button>
+            </div>
+
+          </div>
           <div id="requirements-error" aria-live="polite" aria-atomic="true">
             {state.errors?.requirements &&
               state.errors.requirements.map((error) => (
-                <p className="mt-2 text-sm text-red-500" key={error}>{error}</p>
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
               ))}
           </div>
         </div>
 
-        {/* Job Requirements and Qualifications */}
         <div className="mb-4">
-          <label htmlFor="requirements" className="mb-2 block text-sm font-medium text-gray-700">Job Requirements and Qualifications</label>
+          <label htmlFor="requirements" className="mb-2 block text-sm font-medium text-gray-700">
+            Job Requirements and Qualifications:
+          </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
               <div className="mt-6 flow-root">
                 <div className="inline-block min-w-full align-middle">
                   <div className="rounded-lg bg-white p-2 md:pt-0 shadow-sm">
-                    <table className="hidden min-w-full text-gray-900 md:table" aria-describedby="requirements-error">
+                    <table className="min-w-full text-gray-900" aria-describedby="requirements-error">
                       <thead className="rounded-lg text-left text-sm font-normal text-gray-700">
                         <tr>
-                          <th scope="col" className="px-4 py-5 font-medium sm:pl-6">Available Requirements</th>
-                          <th scope="col" className="px-3 py-5 font-medium">Added Requirements</th>
+                          <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                            Available Requirements
+                          </th>
+                          <th scope="col" className="px-3 py-5 font-medium">
+                            Actions
+                          </th>
+                          <th scope="col" className="px-3 py-5 font-medium">
+                            Added Required Qualifications and Experience:
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white">
                         <tr className="w-full border-b py-3 text-sm last-of-type:border-none">
-                          <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                            <div className="flex items-center gap-3">
-                            
-                              <div className="mb-4">
-                                <label htmlFor="requirement" className="mb-2 block text-sm font-medium text-gray-700">Enter Requirement</label>
-                                <div className="relative mt-2 rounded-md">
-                                  <textarea
-                                    id="requirement"
-                                    name="requirement"
-                                    placeholder="Enter Requirement"
-                                    value={requirementInputValue}
-                                    className="peer block w-full rounded-md border border-gray-300 py-2 pl-3 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
-                                    aria-describedby="requirement-error"
-                                    onChange={handleRequirementChange}
-                                    onBlur={handleRequirementBlur}
-                                  />
-                                </div>
-                              </div>
-                            </div>
+                          <td className="whitespace-normal py-3 pl-6 pr-3">
                             <div aria-live="polite" aria-atomic="true">
-                              <ul className="list-disc pl-6">
+                              <ul className="list-disc pl-6 break-words">
                                 {requirements.map((requirement, index) => (
                                   <li
                                     key={index}
-                                    className={`flex items-center gap-2 rounded-md p-3 text-sm font-medium cursor-pointer ${
-                                      clickedRequiremets.includes(requirement.requirement)
-                                        ? 'bg-blue-100 text-blue-600 pointer-events-none opacity-50'
-                                        : 'bg-gray-50 hover:bg-blue-100 hover:text-blue-600'
-                                    }`}
+                                    className={`flex items-center gap-2 rounded-md p-3 text-sm font-medium cursor-pointer break-words ${clickedRequirements.includes(requirement.requirement)
+                                      ? 'bg-blue-100 text-blue-600 pointer-events-none opacity-50'
+                                      : 'bg-gray-50 hover:bg-blue-100 hover:text-blue-600'
+                                      }`}
                                     onClick={() =>
-                                      !clickedRequiremets.includes(requirement.requirement) &&
+                                      !clickedRequirements.includes(requirement.requirement) &&
                                       handleRequirementClick(requirement.requirement)
                                     }
                                   >
@@ -343,14 +423,37 @@ export default function Form({
                               </ul>
                             </div>
                           </td>
-                          <td className="whitespace-nowrap px-3 py-3">
-                            <ul className="list-disc pl-6">
-                              {clickedRequiremets.map((requirement, index) => (
-                                <li key={index} className="flex items-center gap-2">
+                          <td className="whitespace-normal px-3 py-3 flex flex-col items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={handleAddAllRequirements}
+                              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                              Add All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleDeleteAllRequirements}
+                              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            >
+                              Delete All
+                            </button>
+                          </td>
+                          <td className="whitespace-normal px-3 py-3">
+                            <ul className="list-disc pl-6 break-words">
+                              {clickedRequirements.map((requirement, index) => (
+                                <li key={index} className="flex items-center gap-2 break-words">
                                   <CheckIcon className="w-5 text-blue-600" />
                                   <span>{requirement}</span>
                                   <input type="hidden" name="requirements" value={requirement} />
-                                  <PencilIcon className="w-5 text-blue-600 cursor-pointer" onClick={() => editJobRequirement(requirement)} />
+                                  <PencilIcon
+                                    className="w-5 text-blue-600 cursor-pointer hover:text-blue-800"
+                                    onClick={() => editJobRequirement(requirement)}
+                                  />
+                                  <TrashIcon
+                                    className="w-5 text-red-600 cursor-pointer hover:text-red-800"
+                                    onClick={() => handleDeleteRequirement(requirement)}
+                                  />
                                 </li>
                               ))}
                             </ul>
@@ -358,118 +461,90 @@ export default function Form({
                         </tr>
                       </tbody>
                     </table>
+
+
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          <div className="mt-4">
+            <label
+              htmlFor="requirement"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Enter Requirement
+            </label>
+            <div className="relative mt-2 rounded-md">
+              <textarea
+                id="requirement"
+                name="requirement"
+                placeholder="Enter Requirement"
+                value={requirementInputValue}
+                className="peer block w-full min-h-[8rem] max-h-[16rem] rounded-md border border-gray-300 py-2 pl-3 pr-12 text-sm placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 resize-y"
+                aria-describedby="requirement-error"
+                onChange={handleRequirementChange}
+              />
+              <button
+                type="button"
+                onClick={handleRequirementBlur}
+                className="absolute bottom-2 right-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Submit
+              </button>
+            </div>
+
+
+          </div>
           <div id="requirements-error" aria-live="polite" aria-atomic="true">
             {state.errors?.requirements &&
               state.errors.requirements.map((error) => (
-                <p className="mt-2 text-sm text-red-500" key={error}>{error}</p>
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
               ))}
           </div>
         </div>
 
-        {/* Job Status */}
-        {/* <fieldset>
-          <legend className="mb-2 block text-sm font-medium text-gray-700">Set the Job status</legend>
-          <div className="rounded-md border border-gray-300 bg-white px-[14px] py-3 shadow-sm">
-            <div className="flex gap-4">
-              <div className="flex items-center">
-                <input
-                  id="pending"
-                  name="status"
-                  type="radio"
-                  value="pending"
-                  className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-blue-500"
-                  aria-describedby="status-error"
-                />
-                <label
-                  htmlFor="pending"
-                  className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600"
-                >
-                  Pending <ClockIcon className="h-4 w-4" />
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="closed"
-                  name="status"
-                  type="radio"
-                  value="closed"
-                  className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-blue-500"
-                  aria-describedby="status-error"
-                />
-                <label
-                  htmlFor="closed"
-                  className="ml-2 flex cursor-pointer items-center gap-1.5 rounded-full bg-red-500 px-3 py-1.5 text-xs font-medium text-white"
-                >
-                  Closed <CheckIcon className="h-4 w-4" />
-                </label>
-              </div>
-            </div>
+        {/* Job Application Period */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center">
+            <label htmlFor="startDate" className="text-xs font-medium text-gray-600">Start Date</label>
+            <input
+              type="date"
+              id="startDate"
+              name="startDate"
+              value={jobApplicationPeriod.startDate}
+              onChange={handleJobApplicationPeriodChange}
+              className="h-10 px-2 mt-1 block w-full border border-gray-300 rounded-md break-words"
+              aria-describedby="startDate-error"
+            />
           </div>
-          <div id="status-error" aria-live="polite" aria-atomic="true">
-            {state.errors?.status &&
-              state.errors.status.map((error: string) => (
+          <div id="startDate-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.startDate &&
+              state.errors.startDate.map((error: string) => (
                 <p className="mt-2 text-sm text-red-500" key={error}>{error}</p>
               ))}
           </div>
-        </fieldset> */}
-
-
-        {/* Job Status */}
-        <fieldset>
-            <legend className="mb-2 block text-sm font-medium text-gray-700">
-              Set Job Application Period
-            </legend>
-            <div className="rounded-md border border-gray-300 bg-white px-4 py-3 shadow-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center">
-                  <label
-                    htmlFor="startDate"
-                    className="text-xs font-medium text-gray-600"
-                  >
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    id="startDate"
-                    name="startDate"
-                    defaultValue=""
-                    // onChange={handleChange}
-                    className="h-10 px-2 mt-1 block w-full border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div className="flex items-center">
-                  <label htmlFor="endDate" className="text-xs font-medium text-gray-600">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    id="endDate"
-                    name="endDate"
-                    defaultValue=""
-                    // value={formData.endDate}
-                    // onChange={handleChange}
-                    className="h-10 px-2 mt-1 block w-full border border-gray-300 rounded-md"
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Error messages section (if needed) */}
-            {/* <div id="status-error" aria-live="polite" aria-atomic="true">
-              {errors.startDate && (
-                <p className="mt-2 text-sm text-red-500">{errors.startDate}</p>
-              )}
-              {errors.endDate && (
-                <p className="mt-2 text-sm text-red-500">{errors.endDate}</p>
-              )}
-            </div> */}
-         </fieldset>
-
-
+          <div className="flex items-center">
+            <label htmlFor="endDate" className="text-xs font-medium text-gray-600">End Date</label>
+            <input
+              type="date"
+              id="endDate"
+              name="endDate"
+              value={jobApplicationPeriod.endDate}
+              onChange={handleJobApplicationPeriodChange}
+              className="h-10 px-2 mt-1 block w-full border border-gray-300 rounded-md break-words"
+              aria-describedby="endDate-error"
+            />
+          </div>
+          <div id="endDate-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.endDate &&
+              state.errors.endDate.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>{error}</p>
+              ))}
+          </div>
+        </div>
       </div>
 
       <div className="mt-6 flex justify-end gap-4">

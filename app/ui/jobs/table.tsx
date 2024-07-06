@@ -1,13 +1,10 @@
-
 import Image from 'next/image';
 import { UpdateJob, DeleteJob, AddRequire } from '@/app/ui/jobs/buttons';
 import JobStatus from '@/app/ui/jobs/status';
 import { formatDateToLocal } from '@/app/lib/utils';
 import { fetchFilteredJobs, fetchRequirementTypes } from '@/app/lib/data';
-import {CheckIcon} from '@heroicons/react/24/outline';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import styles from '@/app/ui/home.module.css';
-
-
 
 export default async function JobsTable({
   query,
@@ -27,20 +24,20 @@ export default async function JobsTable({
             {jobs?.map((job) => (
               <div
                 key={job.id}
-                className="mb-2 w-full rounded-md bg-white p-4"
+                className="mb-2 w-full rounded-md bg-white p-4 break-words"
               >
                 <div className="flex items-center justify-between border-b pb-4">
                   <div>
                     <div className="mb-2 flex items-center">
-                      <p>{job.position}</p>
+                      <p className="break-words">{job.position}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{job.station}</p>
+                    <p className="text-sm text-gray-500 break-words">{job.station}</p>
                   </div>
                   <JobStatus status={job.status} />
                 </div>
                 <div className="flex w-full items-center justify-between pt-4">
                   <div>
-                    <p>{formatDateToLocal(job.datecreated)}</p>
+                    <p className="break-words">{formatDateToLocal(job.datecreated)}</p>
                   </div>
                   <div className="flex justify-end gap-2">
                     <UpdateJob id={job.id} />
@@ -53,25 +50,25 @@ export default async function JobsTable({
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
-                <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                <th scope="col" className="px-4 py-5 font-medium sm:pl-6 break-words">
                   Position
                 </th>
-                <th scope="col" className="px-3 py-5 font-medium">
+                <th scope="col" className="px-3 py-5 font-medium break-words">
                   Station
                 </th>
-                <th scope="col" className="px-3 py-5 font-medium">
+                <th scope="col" className="px-3 py-5 font-medium break-words">
                   Requirements
                 </th>
-                <th scope="col" className="px-3 py-5 font-medium">
-                  Reponsibilities
+                <th scope="col" className="px-3 py-5 font-medium break-words">
+                  Responsibilities
                 </th>
-                <th scope="col" className="px-3 py-5 font-medium">
+                <th scope="col" className="px-3 py-5 font-medium break-words">
                   Date
                 </th>
-                <th scope="col" className="px-3 py-5 font-medium">
+                <th scope="col" className="px-3 py-5 font-medium break-words">
                   Status
                 </th>
-                <th scope="col" className="relative py-3 pl-6 pr-3">
+                <th scope="col" className="relative py-3 pl-6 pr-3 break-words">
                   <span className="sr-only">Edit</span>
                 </th>
               </tr>
@@ -82,49 +79,44 @@ export default async function JobsTable({
                   key={job.id}
                   className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
                 >
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                  <td className="whitespace-normal py-3 pl-6 pr-3 break-words">
                     <div className="flex items-center gap-3">
-                      <p>{job.position}</p>
+                      <p className="break-words">{job.position}</p>
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">
+                  <td className="whitespace-normal px-3 py-3 break-words">
                     {job.station}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">
-                  <ul className={styles.list}>
-                    {job.requirement.map((requirement, index) => (
-                      <li key={index} className={styles.listItem}>
-                        <CheckIcon  className="w-5"/>
-                        <span className={styles.text}>{requirement}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <td className="whitespace-normal px-3 py-3 break-words">
+                    <ul className={styles.list}>
+                      {job.requirement.map((requirement, index) => (
+                        <li key={index} className={styles.listItem}>
+                          <CheckIcon className="w-5" />
+                          <span className={styles.text}>{requirement}</span>
+                        </li>
+                      ))}
+                    </ul>
                     <div className="flex justify-end gap-3">
-                      <AddRequire id={job.id} requirementypes={requirementypes}/>
-                      
+                      <AddRequire id={job.id} requirementypes={requirementypes} />
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">
-                  {/* <ul className={styles.list}>
-                    {job.requirement.map((requirement, index) => (
-                      <li key={index} className={styles.listItem}>
-                        <CheckIcon  className="w-5"/>
-                        <span className={styles.text}>{requirement}</span>
-                      </li>
-                    ))}
-                  </ul> */}
-                    <div className="flex justify-end gap-3">
-                      <AddRequire id={job.id} requirementypes={requirementypes}/>
-                      
-                    </div>
+                  <td className="whitespace-normal px-3 py-3 break-words">
+                    <ul className={styles.list}>
+                      {job.responsibility.map((responsibility, index) => (
+                        <li key={index} className={styles.listItem}>
+                          <CheckIcon className="w-5" />
+                          <span className={styles.text}>{responsibility}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">
+                  <td className="whitespace-normal px-3 py-3 break-words">
                     {formatDateToLocal(job.datecreated)}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">
+                  <td className="whitespace-normal px-3 py-3 break-words">
                     <JobStatus status={job.status} />
                   </td>
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                  <td className="whitespace-normal py-3 pl-6 pr-3 break-words">
                     <div className="flex justify-end gap-3">
                       <UpdateJob id={job.id} />
                       <DeleteJob id={job.id} />

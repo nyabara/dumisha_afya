@@ -90,8 +90,8 @@ export async function fetchCardData() {
     // how to initialize multiple queries in parallel with JS.
     const jobCountPromise = sql`SELECT COUNT(*) FROM jobs`;
     const jobStatusPromise = sql`SELECT
-         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS "pending",
-         SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS "closed"
+         SUM(CASE WHEN status = 'Open' THEN 1 ELSE 0 END) AS "pending",
+         SUM(CASE WHEN status = 'Closed' THEN 1 ELSE 0 END) AS "closed"
          FROM jobs`;
 
     const data = await Promise.all([
@@ -130,6 +130,7 @@ export async function fetchFilteredJobs(query: string,currentPage: number,) {
         jb.period,
         jb.date AS datecreated,
         COALESCE(req_data.requirement, ARRAY[]::text[]) AS requirement,
+        COALESCE(resp_data.responsibility, ARRAY[]::text[]) AS responsibility,
         jb.status
       FROM
         jobs AS jb
@@ -146,6 +147,15 @@ export async function fetchFilteredJobs(query: string,currentPage: number,) {
       GROUP BY 
           req.position_id
       ) AS req_data ON jb.id = req_data.position_id
+      LEFT JOIN (
+        SELECT 
+          resp.position_id,
+          array_agg(resp.responsibility) AS responsibility
+        FROM 
+          responsibilities AS resp
+      GROUP BY 
+          resp.position_id
+      ) AS resp_data ON jb.id = req_data.position_id
  
       WHERE 
         jb.position ILIKE ${`%${query}%`} OR
@@ -291,23 +301,65 @@ export async function getUser(email: string) {
   export async function fetchJobById(id: string) {
     noStore
     try {
+
+   
       
       const data = await sql<JobForm>`
+    WITH req_data AS (
         SELECT
-        jobs.id,
-        jobs.position,
-        jobs.group_id,
-        jobs.station_id,
-        jobs.period,
-        jobs.status
+          req.position_id,
+          json_agg(json_build_object(
+            'id', req.id,
+            'requirement', req.requirement,
+            'position_id', req.position_id,
+            'group_id', req.group_id,
+            'rqtype_id', req.rqtype_id
+          )) AS requirements
+        FROM requirements req
+        GROUP BY req.position_id
+      ),
+      resp_data AS (
+        SELECT
+          resp.position_id,
+          json_agg(json_build_object(
+            'id', resp.id,
+            'responsibility', resp.responsibility,
+            'position_id', resp.position_id,
+            'group_id', resp.group_id
+          )) AS responsibilities
+        FROM responsibilities resp
+        GROUP BY resp.position_id
+      ),
+      job_details AS (
+        SELECT
+          jobs.id,
+          jobs.position,
+          jobs.station_id,
+          jobs.group_id AS job_group,
+          jobs.period,
+          jobs.startDate AS startDate,
+          jobs.endDate AS endDate,
+          jobs.status
         FROM jobs
-        WHERE jobs.id = ${id};
+        WHERE jobs.id = ${id}
+      )
+      SELECT
+        job_details.id,
+        job_details.position,
+        job_details.station_id,
+        job_details.job_group,
+        job_details.period,
+        job_details.startDate,
+        job_details.endDate,
+        job_details.status,
+      
+        COALESCE(req_data.requirements, '[]') AS requirement,
+        COALESCE(resp_data.responsibilities, '[]') AS responsibility
+      FROM job_details
+      LEFT JOIN req_data ON job_details.id = req_data.position_id
+      LEFT JOIN resp_data ON job_details.id = resp_data.position_id;
       `;
-      // const invoice = data.rows.map((invoice) => ({
-      //   ...invoice,
-      //   // Convert amount from cents to dollars
-      //   amount: invoice.amount / 100,
-      // }));
+    
       const job= data.rows
       console.log(job);
       return job[0];

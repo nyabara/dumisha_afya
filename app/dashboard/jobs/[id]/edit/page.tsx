@@ -1,19 +1,24 @@
 import Form from '@/app/ui/jobs/edit-form';
 import Breadcrumbs from '@/app/ui/jobs/breadcrumbs';
-import { fetchJobById,fetchLocations } from '@/app/lib/data';
+import { fetchJobById,fetchLocations, fetchJobGroups } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
  
 export default async function Page({ params }: { params: { id: string } }) {
     const id = params.id;
-    const [job, stations] = await Promise.all([
+
+    
+    const [job, stations, jobGroups] = await Promise.all([
         fetchJobById(id),
         fetchLocations(),
+        fetchJobGroups(),
       ]);
       if (!job) {
         notFound();
       }
+      
       console.log("jobStatus1",job.status);
       console.log("jobId",job.id);
+      
   return (
     
     <main>
@@ -27,7 +32,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           },
         ]}
       />
-      <Form job={job}  stations={stations}/>
+      <Form initialJob={job}  stations={stations} job_groups={jobGroups}/>
     </main>
   );
 }

@@ -7,18 +7,18 @@ export default function JobStatus({ status }: { status: string }) {
       className={clsx(
         'inline-flex items-center rounded-full px-2 py-1 text-xs',
         {
-          'bg-gray-100 text-gray-500': status === 'pending',
-          'bg-red-500 text-white': status === 'closed',
+          'bg-gray-100 text-gray-500': status === 'Open',
+          'bg-red-500 text-white': status === 'Closed',
         },
       )}
     >
-      {status === 'pending' ? (
+      {status === 'Open' ? (
         <>
-          Pending
+          Open
           <ClockIcon className="ml-1 w-4 text-gray-500" />
         </>
       ) : null}
-      {status === 'closed' ? (
+      {status === 'Closed' ? (
         <>
           Closed
           <CheckIcon className="ml-1 w-4 text-white" />
