@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
-import { Requirement, Responsibility } from '@/app/lib/definitions';
 
 
 export async function authenticate(
@@ -57,17 +56,25 @@ const FormSchema = z.object({
 
   date: z.string(),
   status: z.string(),
-  // Including an array of non-empty strings
+ 
   requirements: z.array(z.string().refine(value => !!value, {
     message: 'Requirement cannot be empty.',
   })).nonempty({
     message: 'Please enter at least one requirement.',
   }),
-  // Including an array of non-empty strings
+ 
   responsibilities: z.array(z.string().refine(value => !!value, {
     message: 'Responsibilities cannot be empty.',
   })).nonempty({
     message: 'Please enter at least one responsibility.',
+  }),
+  responsibilitiesJsonString: z.string().refine(value => !!value, {
+    message: '',
+
+  }),
+  requirementsJsonString: z.string().refine(value => !!value, {
+    message: '',
+
   }),
 });
 
@@ -92,13 +99,17 @@ export type State = {
 const getStatus = (endDate: string): string => {
   const today: Date = new Date();
   const endDateObj: Date = new Date(endDate);
-  // Set the time part of today's date to 00:00:00 to only compare dates
+  //Set the time part of today's date to 00:00:00 to only compare dates
   today.setHours(0, 0, 0, 0);
   endDateObj.setHours(0, 0, 0, 0);
   return endDateObj < today ? 'Closed' : 'Open';
 };
 
-const CreateJob = FormSchema.omit({ id: true, date: true, status: true });
+const CreateJob = FormSchema.omit({
+  id: true, date: true, status: true,
+  responsibilitiesJsonString: true, requirementsJsonString: true
+});
+
 export async function createJob(prevState: State, formData: FormData) {
   // Validate form fields using Zod
   const term_id = '06cba7c1-5ea8-42dd-8457-970ba7cba6be';
@@ -115,7 +126,6 @@ export async function createJob(prevState: State, formData: FormData) {
     responsibilities: formData.getAll('responsibilities'),
   });
 
-  //console.log(startDate)
 
   if (!validatedFields.success) {
     console.log("error");
@@ -194,7 +204,34 @@ export async function createJob(prevState: State, formData: FormData) {
 // Use Zod to update the expected types
 const UpdateJob = FormSchema.omit({ id: true, date: true, status: true });
 
+// Define a schema using Zod for Responsibility type
+const ResponsibilitySchema = z.object({
+  id: z.string(),
+  responsibility: z.string(),
+  position_id: z.string(),
+  group_id: z.string(),
+});
+
+// Define Responsibility type
+type Responsibility = z.infer<typeof ResponsibilitySchema>;
+
+const RequirementSchema = z.object({
+  id: z.string(),
+  requirement: z.string(),
+  position_id: z.string(),
+  group_id: z.string(),
+  rqtype_id: z.string(),
+});
+
+// Define Responsibility type
+type Requirement = z.infer<typeof RequirementSchema>;
+
+let parsedResponsibilities: Responsibility[] = [];
+let parsedRequirements: Requirement[] = [];
+
 export async function updateJob(id: string, formData: FormData) {
+
+  const rqtype_id = '13d07535-c59e-4157-a011-f8d2ef4e0cbb';
   const validatedFields = UpdateJob.safeParse({
     position: formData.get('position'),
     station: formData.get('station'),
@@ -202,11 +239,11 @@ export async function updateJob(id: string, formData: FormData) {
     group_id: formData.get('group_id'),
     startDate: formData.get('startDate'),
     endDate: formData.get('endDate'),
+    responsibilitiesJsonString: formData.get('responsibilitiesJsonString'),
+    requirementsJsonString: formData.get('requirementsJsonString'),
     requirements: formData.getAll('requirements'),
-    responsibilities: formData.getAll('responsibilities'),
+    responsibilities: formData.getAll('responsibilities')
   });
-
-  //console.log(startDate)
 
   if (!validatedFields.success) {
     console.log("error");
@@ -216,39 +253,33 @@ export async function updateJob(id: string, formData: FormData) {
     };
   }
 
-  // Prepare data for insertion into the database
-  const { position, station, period, group_id, requirements, responsibilities, startDate, endDate } = validatedFields.data;
+  //Prepare data for insertion into the database
+  const { position, station, period, group_id, responsibilitiesJsonString, requirementsJsonString, 
+    startDate, endDate, requirements, responsibilities } = validatedFields.data;
 
-  // Parse the responsibilities array
-  const parsedResponsibilities: Responsibility[] = responsibilities.map((responsibility) =>
-    JSON.parse(responsibility) as Responsibility
-  );
+  try {
 
-  // Log each responsibility's description
-  for (const respo of parsedResponsibilities) {
-    console.log(respo.responsibility); // Assuming 'description' is a field in Responsibility
+    // Parse the JSON string
+    const parsedArray = JSON.parse(responsibilitiesJsonString);
+    // Validate the array to ensure it's an array of objects matching the Requirement schema
+    parsedResponsibilities = z.array(ResponsibilitySchema).parse(parsedArray);
+   
+  } catch (error) {
+    console.error(`Error parsing or validating requirements: ${error}`);
   }
 
+  try {
+    // Parse the JSON string
+    const parsedArray = JSON.parse(requirementsJsonString);
 
-  // Parse the requirements array
-  const parsedRequirements: Requirement[] = requirements.map((requirement) =>
-    JSON.parse(requirement) as Requirement
-  );
-
-  // Log each responsibility's description
-  for (const req of parsedRequirements) {
-    console.log(req.requirement); // Assuming 'description' is a field in Responsibility
+    // Validate the array to ensure it's an array of objects matching the Requirement schema
+    parsedRequirements = z.array(RequirementSchema).parse(parsedArray);
+  
+  } catch (error) {
+    console.error(`Error parsing or validating requirements: ${error}`);
   }
-
-
-
-  console.log("responsibilities:" + responsibilities);
-  // console.log("requirements:" + requirements);
-  // console.log(validatedFields.data);
-  // console.log(getStatus(endDate));
 
   const status = getStatus(endDate);
-  const date = new Date().toISOString().split('T')[0];
 
   try {
 
@@ -263,6 +294,7 @@ export async function updateJob(id: string, formData: FormData) {
 
     // Insert associated responsibilities into the requirements table
     for (const responsibility of parsedResponsibilities) {
+      console.log(responsibility.responsibility)
       await sql`
       UPDATE responsibilities
       SET responsibility=${responsibility.responsibility}, position_id=${id}, group_id=${group_id}
@@ -279,6 +311,22 @@ export async function updateJob(id: string, formData: FormData) {
     `;
     }
 
+        // Insert associated responsibilities into the requirements table
+        for (const responsibility of responsibilities) {
+          await sql`
+            INSERT INTO responsibilities (responsibility, position_id, group_id)
+            VALUES (${responsibility}, ${id}, ${group_id})
+          `;
+        }
+    
+        // Insert associated requirements into the requirements table
+        for (const requirement of requirements) {
+          await sql`
+            INSERT INTO requirements (requirement, position_id, group_id, rqtype_id)
+            VALUES (${requirement}, ${id}, ${group_id}, ${rqtype_id})
+          `;
+        }
+
     await sql`COMMIT`;
 
   } catch (error) {
@@ -294,7 +342,15 @@ export async function updateJob(id: string, formData: FormData) {
   revalidatePath('/dashboard/jobs');
   revalidatePath('/dashboard');
   revalidatePath(`/dashboard/jobs/${id}/edit`);
+  revalidatePath('/dashboard/jobs/create');
   redirect('/dashboard/jobs');
+
+}
+
+export async function revalidatePathOnJobGroupChange(id: string,){
+
+  revalidatePath(`/dashboard/jobs/${id}/edit`);
+
 
 }
 
@@ -380,4 +436,41 @@ export async function deleteJob(id: string) {
   revalidatePath('/dashboard/jobs');
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/jobs/create');
+}
+
+export async function deleteResponsibility(id: string, job_id: string) {
+  console.log("responsibiltydeleteid" + id);
+  try {
+    // Start a transaction
+
+    await sql`DELETE FROM responsibilities WHERE id = ${id}`;
+  } catch (error) {
+    return {
+      message: 'Database Error: Failed to delete job.',
+    };
+  }
+  revalidatePath(`/dashboard/jobs/${job_id}/edit`);
+  revalidatePath('/dashboard/jobs');
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/jobs/create');
+  redirect(`/dashboard/jobs/${job_id}/edit`);
+}
+
+
+export async function deleteQualification(id: string, job_id: string) {
+  console.log("responsibiltydeleteid" + id);
+  try {
+    // Start a transaction
+
+    await sql`DELETE FROM requirements WHERE id = ${id}`;
+  } catch (error) {
+    return {
+      message: 'Database Error: Failed to delete job.',
+    };
+  }
+  revalidatePath(`/dashboard/jobs/${job_id}/edit`);
+  revalidatePath('/dashboard/jobs');
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/jobs/create');
+  redirect(`/dashboard/jobs/${job_id}/edit`);
 }

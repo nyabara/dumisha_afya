@@ -1,23 +1,26 @@
 import Form from '@/app/ui/jobs/edit-form';
 import Breadcrumbs from '@/app/ui/jobs/breadcrumbs';
-import { fetchJobById,fetchLocations, fetchJobGroups } from '@/app/lib/data';
+import { fetchJobById,fetchLocations, fetchJobGroups,fetchRequirementsByJobGroup,fetchResponsibilityByJobGroup } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
  
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: { id: string, group_query_edit?:string } }) {
     const id = params.id;
+    const group_query_edit = params?.group_query_edit || '';
 
+    
     
     const [job, stations, jobGroups] = await Promise.all([
         fetchJobById(id),
         fetchLocations(),
-        fetchJobGroups(),
+        fetchJobGroups()
       ]);
+    const requirements = await fetchRequirementsByJobGroup(group_query_edit);
+    const responsibilities = await fetchResponsibilityByJobGroup(group_query_edit);
       if (!job) {
         notFound();
       }
       
-      console.log("jobStatus1",job.status);
-      console.log("jobId",job.id);
+   
       
   return (
     
@@ -32,7 +35,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           },
         ]}
       />
-      <Form initialJob={job}  stations={stations} job_groups={jobGroups}/>
+      <Form initialJob={job}  stations={stations} job_groups={jobGroups} job_id={id} requirements={requirements} responsibilities={responsibilities}/>
     </main>
   );
 }

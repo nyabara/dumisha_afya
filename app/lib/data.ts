@@ -1,17 +1,16 @@
 import { sql } from '@vercel/postgres';
-import { unstable_noStore as noStore } from 'next/cache';
+import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import {
-    JobCount,
-    JobsTable,
-    User,
-    Requirement,
-    Station,
-    JobForm,
-    RequirementType,
-    JobGroup,
-    Responsibility
+  JobCount,
+  JobsTable,
+  User,
+  Requirement,
+  Station,
+  JobForm,
+  RequirementType,
+  JobGroup,
+  Responsibility
 } from './definitions';
-
 
 
 
@@ -49,8 +48,8 @@ export async function fetchJobCount() {
     throw new Error('Failed to fetch jobcount data.');
   }
 }
-
-export async function getJobs() {
+const LATEST_JOBS = 5;
+export async function getLatestJobs() {
   noStore
   try {
     const data = await sql<JobsTable>`
@@ -71,10 +70,10 @@ export async function getJobs() {
         job_groups as jbg on jb.group_id=jbg.id
       LEFT JOIN
         terms as tms on jb.term_id=tms.id
+      ORDER BY jb.date DESC
+      LIMIT ${LATEST_JOBS}
     `;
-    console.log('Query jobs result:', data); // Log the data object
-    console.log('Rows:', data.rows);
-    
+
     return data.rows;
   } catch (error) {
     console.error('Database Error:', error);
@@ -116,11 +115,9 @@ export async function fetchCardData() {
 
 const ITEMS_PER_PAGE = 6;
 
-export async function fetchFilteredJobs(query: string,currentPage: number,) {
-  noStore
+export async function fetchFilteredJobs(query: string, currentPage: number) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-  try{
-    
+  try {
     const jobs = await sql<JobsTable>`
       SELECT
         jb.id,
@@ -135,45 +132,42 @@ export async function fetchFilteredJobs(query: string,currentPage: number,) {
       FROM
         jobs AS jb
       LEFT JOIN
-        stations as sta on jb.station_id=sta.id
-      LEFT JOIN 
-        job_groups as jbg on jb.group_id=jbg.id
+        stations AS sta ON jb.station_id = sta.id
+      LEFT JOIN
+        job_groups AS jbg ON jb.group_id = jbg.id
       LEFT JOIN (
-        SELECT 
+        SELECT
           req.position_id,
           array_agg(req.requirement) AS requirement
-        FROM 
+        FROM
           requirements AS req
-      GROUP BY 
+        GROUP BY
           req.position_id
       ) AS req_data ON jb.id = req_data.position_id
       LEFT JOIN (
-        SELECT 
+        SELECT
           resp.position_id,
           array_agg(resp.responsibility) AS responsibility
-        FROM 
+        FROM
           responsibilities AS resp
-      GROUP BY 
+        GROUP BY
           resp.position_id
-      ) AS resp_data ON jb.id = req_data.position_id
- 
+      ) AS resp_data ON jb.id = resp_data.position_id
       WHERE 
         jb.position ILIKE ${`%${query}%`} OR
         sta.station ILIKE ${`%${query}%`} OR
-        jb.date ::text ILIKE ${`%${query}%`} OR
+        jb.date::text ILIKE ${`%${query}%`} OR
         jb.status ILIKE ${`%${query}%`} OR
-        array_to_string(req_data.requirement, ', ') ILIKE ${`%${query}%`}
+        array_to_string(req_data.requirement, ', ') ILIKE ${`%${query}%`} OR
+        array_to_string(resp_data.responsibility, ', ') ILIKE ${`%${query}%`}
       ORDER BY jb.date DESC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
     return jobs.rows;
-    }
-    catch(error)
-    {
-      console.error('Database Error:', error);
-      throw new Error('Failed to fetch jobs.');
-    }
-
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch jobs.');
+  }
 }
 
 export async function fetchJobsPages(query: string) {
@@ -216,7 +210,6 @@ export async function fetchRequirementTypes() {
     `;
 
     const requirementtypes = data.rows;
-    console.log(requirementtypes);
     return requirementtypes;
   } catch (err) {
     console.error('Database Error:', err);
@@ -238,7 +231,6 @@ export async function fetchRequirements() {
     `;
 
     const requirements = data.rows;
-    console.log(requirements);
     return requirements;
   } catch (err) {
     console.error('Database Error:', err);
@@ -258,7 +250,6 @@ export async function fetchJobGroups() {
     `;
 
     const jobGroups = data.rows;
-    console.log(jobGroups);
     return jobGroups;
   } catch (err) {
     console.error('Database Error:', err);
@@ -288,23 +279,23 @@ export async function fetchLocations() {
 
 export async function getUser(email: string) {
   noStore
-    try {
-      const user = await sql`SELECT * FROM users WHERE email=${email}`;
-      return user.rows[0] as User;
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      throw new Error('Failed to fetch user.');
-    }
+  try {
+    const user = await sql`SELECT * FROM users WHERE email=${email}`;
+    return user.rows[0] as User;
+  } catch (error) {
+    console.error('Failed to fetch user:', error);
+    throw new Error('Failed to fetch user.');
   }
+}
 
 
-  export async function fetchJobById(id: string) {
-    noStore
-    try {
+export async function fetchJobById(id: string) {
+  noStore
+  try {
 
-   
-      
-      const data = await sql<JobForm>`
+
+
+    const data = await sql<JobForm>`
     WITH req_data AS (
         SELECT
           req.position_id,
@@ -359,105 +350,86 @@ export async function getUser(email: string) {
       LEFT JOIN req_data ON job_details.id = req_data.position_id
       LEFT JOIN resp_data ON job_details.id = resp_data.position_id;
       `;
-    
-      const job= data.rows
-      console.log(job);
-      return job[0];
-    } catch (error) {
-      console.error('Database Error:', error);
-      throw new Error('Failed to fetch job.');
+
+    const job = data.rows
+    return job[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch job.');
+  }
+}
+
+
+export async function fetchRequirementsByJobGroup(id: string) {
+  noStore
+  try {
+    let data;
+    if (id) {
+      data = await sql<Requirement>`
+        SELECT
+          requirements.id,
+          requirements.requirement,
+          requirements.position_id,
+          requirements.group_id,
+          requirements.rqtype_id
+        FROM requirements
+        WHERE requirements.group_id = ${id};
+      `;
+    } else {
+      data = await sql<Requirement>`
+        SELECT
+          requirements.id,
+          requirements.requirement,
+          requirements.position_id,
+          requirements.group_id,
+          requirements.rqtype_id
+        FROM requirements;
+      `;
     }
+
+    const requirements = data.rows;
+    revalidatePath('/dashboard/jobs/create');
+    return requirements;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch all requirements.');
   }
 
+}
 
-  export async function fetchRequirementsByJobGroup(id: string) {
-    noStore
-    if (id){
-      try {
-        const data = await sql<Requirement>`
-          SELECT
-            requirements.id,
-            requirements.requirement,
-            requirements.position_id,
-            requirements.group_id,
-            requirements.rqtype_id
-          FROM requirements
-          WHERE requirements.group_id = ${id};
-        `;
-    
-        const requirements = data.rows;
-        console.log(requirements);
-        return requirements;
-      } catch (err) {
-        console.error('Database Error:', err);
-        throw new Error('Failed to fetch all requirements.');
-      }
 
-    }else{
-      try {
-        const data = await sql<Requirement>`
-          SELECT
-            requirements.id,
-            requirements.requirement,
-            requirements.position_id,
-            requirements.group_id,
-            requirements.rqtype_id
-          FROM requirements
-        `;
-    
-        const requirements = data.rows;
-        console.log(requirements);
-        return requirements;
-      } catch (err) {
-        console.error('Database Error:', err);
-        throw new Error('Failed to fetch all requirements.');
-      }
+export async function fetchResponsibilityByJobGroup(id: string) {
+  noStore
+  try {
+    let data;
+    if (id) {
+      data = await sql<Responsibility>`
+        SELECT
+          responsibilities.id,
+          responsibilities.responsibility,
+          responsibilities.position_id,
+          responsibilities.group_id
+        FROM responsibilities
+        WHERE responsibilities.group_id = ${id};
+      `;
+    } else {
+      data = await sql<Responsibility>`
+        SELECT
+          responsibilities.id,
+          responsibilities.responsibility,
+          responsibilities.position_id,
+          responsibilities.group_id
+        FROM responsibilities;
+      `;
     }
-  
+
+    const responsibilities = data.rows;
+    revalidatePath('/dashboard/jobs/create');
+    return responsibilities;
+  } catch (err) {
+    console.error('Database Error:', err);
+    throw new Error('Failed to fetch all responsibilities.');
   }
 
-
-  export async function fetchResponsibilityByJobGroup(id: string) {
-    noStore
-    if (id){
-      try {
-        const data = await sql<Responsibility>`
-          SELECT
-            responsibilities.id,
-            responsibilities.responsibility,
-            responsibilities.position_id,
-            responsibilities.group_id
-          FROM responsibilities
-          WHERE responsibilities.group_id = ${id};
-        `;
-    
-        const responsibilities = data.rows;
-        console.log(responsibilities);
-        return responsibilities;
-      } catch (err) {
-        console.error('Database Error:', err);
-        throw new Error('Failed to fetch all responsibilities.');
-      }
-
-    }else{
-      try {
-        const data = await sql<Responsibility>`
-          SELECT
-            responsibilities.id,
-            responsibilities.responsibility,
-            responsibilities.position_id,
-            responsibilities.group_id
-          FROM responsibilities
-        `;
-    
-        const responsibilities = data.rows;
-        console.log(responsibilities);
-        return responsibilities;
-      } catch (err) {
-        console.error('Database Error:', err);
-        throw new Error('Failed to fetch all responsibilities.');
-      }
-    }
-  
-  }
+}
 

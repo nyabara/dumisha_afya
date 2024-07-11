@@ -3,7 +3,7 @@
 import React from 'react';
 import { PencilIcon, PlusIcon, TrashIcon, } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { deleteJob } from '@/app/lib/actions';
+import { deleteJob ,deleteResponsibility} from '@/app/lib/actions';
 
 import * as Dialog from '@radix-ui/react-dialog';
 import styles from '@/app/ui/home.module.css';
@@ -176,6 +176,19 @@ export function DeleteJob({ id }: { id: string }) {
     </form>
   );
 }
+
+// export function DeleteResponsibility({ id }: { id: string }) {
+//   const deleteResponsibilityWithId = deleteResponsibility.bind(null, id);
+//   return (
+//     <form action={deleteResponsibilityWithId}>
+//       <button className="rounded-md border p-2 hover:bg-gray-100">
+//         <span className="sr-only">Delete</span>
+//         <TrashIcon className="w-4" />
+//       </button>
+//     </form>
+//   );
+// }
+
 
 
 function AddButton() {

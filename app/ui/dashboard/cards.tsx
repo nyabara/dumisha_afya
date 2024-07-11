@@ -10,7 +10,7 @@ import {
   const iconMap = {
     closed: LockClosedIcon,
     customers: UserGroupIcon,
-    pending: ClockIcon,
+    open: ClockIcon,
     jobs: InboxIcon,
   };
 
@@ -26,7 +26,7 @@ import {
         {/* NOTE: comment in this code when you get to this point in the course */}
   
         <Card title="Closed" value={totalClosedJobs} type="closed" />
-        <Card title="Pending" value={totalPendingJobs} type="pending" />
+        <Card title="Open" value={totalPendingJobs} type="open" />
         <Card title="Total Jobs" value={numberOfJobs} type="jobs" />
         {/* <Card
           title="Total Customers"
@@ -44,7 +44,7 @@ import {
   }: {
     title: string;
     value: number | string;
-    type: 'jobs' | 'customers' | 'pending' | 'closed';
+    type: 'jobs' | 'customers' | 'open' | 'closed';
   }) {
     const Icon = iconMap[type];
   

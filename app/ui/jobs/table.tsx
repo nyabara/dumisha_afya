@@ -14,39 +14,12 @@ export default async function JobsTable({
   currentPage: number;
 }) {
   const jobs = await fetchFilteredJobs(query, currentPage);
-  const requirementypes = await fetchRequirementTypes();
 
   return (
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          <div className="md:hidden">
-            {jobs?.map((job) => (
-              <div
-                key={job.id}
-                className="mb-2 w-full rounded-md bg-white p-4 break-words"
-              >
-                <div className="flex items-center justify-between border-b pb-4">
-                  <div>
-                    <div className="mb-2 flex items-center">
-                      <p className="break-words">{job.position}</p>
-                    </div>
-                    <p className="text-sm text-gray-500 break-words">{job.station}</p>
-                  </div>
-                  <JobStatus status={job.status} />
-                </div>
-                <div className="flex w-full items-center justify-between pt-4">
-                  <div>
-                    <p className="break-words">{formatDateToLocal(job.datecreated)}</p>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <UpdateJob id={job.id} />
-                    <DeleteJob id={job.id} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
@@ -96,9 +69,7 @@ export default async function JobsTable({
                         </li>
                       ))}
                     </ul>
-                    <div className="flex justify-end gap-3">
-                      <AddRequire id={job.id} requirementypes={requirementypes} />
-                    </div>
+                  
                   </td>
                   <td className="whitespace-normal px-3 py-3 break-words">
                     <ul className={styles.list}>

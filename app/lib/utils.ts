@@ -34,9 +34,9 @@ export const formatPeriodDate = (
 ) => {
   const date = new Date(dateStr);
   const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
+    year: 'numeric'
   };
   const formatter = new Intl.DateTimeFormat(locale, options);
   return formatter.format(date);

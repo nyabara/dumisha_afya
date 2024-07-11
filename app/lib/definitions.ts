@@ -88,8 +88,8 @@ export type RequirementField = {
     period : string;
     requirement: Requirement[];
     responsibility: Responsibility[];
-    startDate: string;
-    endDate: string;
+    startdate: string;
+    enddate: string;
     status: 'Open' | 'Closed';
     terms: string;
   };

@@ -226,7 +226,7 @@ async function seedRequirements(client){
         const createTable = await client.sql`
         CREATE TABLE IF NOT EXISTS requirements(
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-            requirement VARCHAR(255) NOT NULL,
+            requirement TEXT NOT NULL,
             position_id UUID NOT NULL,
             group_id UUID NOT NULL,
             rqtype_id UUID NOT NULL
@@ -261,7 +261,7 @@ async function seedRequirements(client){
 //         const createTable = await client.sql`
 //         CREATE TABLE IF NOT EXISTS responsibilities(
 //             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-//             responsibility VARCHAR(255) NOT NULL,
+//             responsibility TEXT NOT NULL,
 //             position_id UUID NOT NULL,
 //             group_id UUID NOT NULL
 //         );
