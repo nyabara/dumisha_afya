@@ -45,6 +45,7 @@ export default function Form({
       params.delete('group_query');
     }
     replace(`${pathname}?${params.toString()}`);
+    
   };
 
   // Creating job key roles and responsibilities logics
@@ -204,7 +205,7 @@ export default function Form({
         </div>
 
         {/* Job Period */}
-        <div className="mb-4">
+      {/*  <div className="mb-4">
           <label htmlFor="period" className="mb-2 block text-sm font-medium text-gray-700">Period</label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
@@ -225,7 +226,7 @@ export default function Form({
                 <p className="mt-2 text-sm text-red-500" key={error}>{error}</p>
               ))}
           </div>
-        </div>
+        </div>*/}
 
         {/* Job Group */}
         <div className="mb-4">

@@ -24,6 +24,8 @@ import {
     return (
       <>
         {/* NOTE: comment in this code when you get to this point in the course */}
+
+        
   
         <Card title="Closed" value={totalClosedJobs} type="closed" />
         <Card title="Open" value={totalPendingJobs} type="open" />
@@ -32,7 +34,8 @@ import {
           title="Total Customers"
           value={numberOfCustomers}
           type="customers"
-        /> */}
+        /> 
+        */}
       </>
     );
   }

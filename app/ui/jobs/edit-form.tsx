@@ -11,10 +11,8 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Button } from '@/app/ui/button';
-import { updateJob, deleteResponsibility, deleteQualification, revalidatePathOnJobGroupChange } from '@/app/lib/actions';
+import { updateJob, deleteResponsibility, deleteQualification } from '@/app/lib/actions';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-
-
 
 export default function EditJobForm({
   initialJob,
@@ -136,7 +134,6 @@ export default function EditJobForm({
     setClickedNewResponsibilities([]);
   };
 
-
   // Editing job qualification logics
   const [qualificationInputValue, setQualificationInputValue] = useState('');
   const [qualificationEditingIndex, setQualificationEditingIndex] = useState<number | null>(null);
@@ -172,8 +169,6 @@ export default function EditJobForm({
     setQualificationInputValue(''); // Clear input value after processing
   };
 
-
-
   const moveToQualificationRowData = useRef<HTMLTableDataCellElement>(null);
 
   const textareaRefQualification = useRef<HTMLTextAreaElement>(null);
@@ -185,8 +180,6 @@ export default function EditJobForm({
       textareaRefQualification.current.focus();
     }
   };
-
-
 
   const handleQualificationDeleteClick = async (id: string) => {
     await deleteQualification(id, job_id);
@@ -210,11 +203,12 @@ export default function EditJobForm({
   const handleJobGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setJobGroupValue(value);
-    handleJobGroup(jobGroupValue);
-    revalidatePathOnJobGroupChange(job_id);
+    handleJobGroup(value);
+     
   };
 
   const handleJobGroup = (group_query_edit: string) => {
+
     const params = new URLSearchParams(searchParams);
     if (group_query_edit) {
       params.set('group_query_edit', group_query_edit);
@@ -223,10 +217,10 @@ export default function EditJobForm({
       params.delete('group_query_edit');
     }
     replace(`${pathname}?${params.toString()}`);
-   
+    console.log(requirements);
+    
   };
-
-
+  
   // Creating new requirement logics
 
   const [newRequirementInputValue, setNewRequirementInputValue] = useState<string>('');
@@ -286,7 +280,7 @@ export default function EditJobForm({
         startDate: job.startdate,
         endDate: job.enddate
       });
-      setJobGroupValue(job.job_group);
+     
     } else {
       console.warn('Job or job dates are not properly defined:', job);
     }
@@ -341,7 +335,7 @@ export default function EditJobForm({
               id="station"
               name="station"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              defaultValue=""
+              defaultValue={job.station_id}
             >
               <option value="" disabled>
                 Select Place of Attachment
@@ -357,7 +351,7 @@ export default function EditJobForm({
         </div>
 
         {/* Job Period */}
-        <div className="mb-4">
+       {/* <div className="mb-4">
           <label htmlFor="period" className="mb-2 block text-sm font-medium">
             Period
           </label>
@@ -375,6 +369,7 @@ export default function EditJobForm({
             </div>
           </div>
         </div>
+        */}
 
         {/* Job Group */}
         <div className="mb-4">
@@ -384,8 +379,8 @@ export default function EditJobForm({
               id="group_id"
               name="group_id"
               className="peer block w-full cursor-pointer rounded-md border border-gray-300 py-2 pl-3 pr-10 text-sm text-gray-700 focus:border-blue-500 focus:ring-blue-500 break-words"
-              defaultValue={jobGroupValue}
-              onChange={handleJobGroupChange}
+              defaultValue={job.job_group}
+              onChange={(e) => handleJobGroup(e.target.value)}
               aria-describedby="group_id-error"
             >
               <option value="" disabled>Select Job Group</option>

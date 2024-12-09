@@ -1,8 +1,8 @@
 import Image from 'next/image';
-import { UpdateJob, DeleteJob, AddRequire } from '@/app/ui/jobs/buttons';
+import { UpdateJob, DeleteJob, ApplyJob } from '@/app/ui/jobs/buttons';
 import JobStatus from '@/app/ui/jobs/status';
 import { formatDateToLocal } from '@/app/lib/utils';
-import { fetchFilteredJobs, fetchRequirementTypes } from '@/app/lib/data';
+import { fetchFilteredJobs } from '@/app/lib/data';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import styles from '@/app/ui/home.module.css';
 
@@ -43,6 +43,9 @@ export default async function JobsTable({
                 </th>
                 <th scope="col" className="relative py-3 pl-6 pr-3 break-words">
                   <span className="sr-only">Edit</span>
+                </th>
+                <th scope="col" className="relative py-3 pl-6 pr-3 break-words">
+                  <span className="sr-only">Application</span>
                 </th>
               </tr>
             </thead>
@@ -91,8 +94,10 @@ export default async function JobsTable({
                     <div className="flex justify-end gap-3">
                       <UpdateJob id={job.id} />
                       <DeleteJob id={job.id} />
+                      <ApplyJob id={job.id} />
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>

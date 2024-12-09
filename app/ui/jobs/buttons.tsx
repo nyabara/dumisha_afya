@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { PencilIcon, PlusIcon, TrashIcon, } from '@heroicons/react/24/outline';
+import { PencilIcon, PlusIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { deleteJob ,deleteResponsibility} from '@/app/lib/actions';
 
@@ -16,8 +16,8 @@ import { ArrowRightIcon, } from '@heroicons/react/20/solid';
 import { Button } from '@/app/ui/button';
 import { useFormState, useFormStatus, } from 'react-dom';
 import { createRequirement } from '@/app/lib/actions';
-import { RequirementType } from '@/app/lib/definitions';
-
+import { RequirementType, ApplicantForm} from '@/app/lib/definitions';
+import * as XLSX from 'xlsx';
 
 export function CreateJob() {
   return (
@@ -39,6 +39,82 @@ export function UpdateJob({ id }: { id: string }) {
       className="rounded-md border p-2 hover:bg-gray-100"
     >
       <PencilIcon className="w-5" />
+    </Link>
+  );
+}
+
+
+export function ExporttoExcel({ applicants }: { applicants: ApplicantForm[] }) {
+  const handleExport = () => {
+    // Sheet 1: General applicant information with education and experience mapped
+    const data = applicants.flatMap((applicant) => {
+      // Map each applicant to multiple rows depending on the number of educations and experiences
+      const maxLength = Math.max(applicant.app_educations.length, applicant.app_experiences.length, applicant.app_resumes.length, applicant.app_cover_letters.length);
+
+      return Array.from({ length: maxLength }, (_, index) => ({
+        Firstname: applicant.firstname,
+        Fullname: applicant.fullname,
+        Phone: applicant.phone,
+        Email: applicant.email,
+        City: applicant.city,
+        CountryID: applicant.countryofresidence,
+        Country: applicant.country,
+        PermanentAddress: applicant.permanentaddress,
+        PostalCode: applicant.postalcode,
+        Gender: applicant.gender,
+        PositionApplied: applicant.position_applied,
+
+        // Education information
+        Institution: applicant.app_educations[index]?.institution_name || '',
+        EducationStartDate: applicant.app_educations[index]?.start_date || '',
+        EducationEndDate: applicant.app_educations[index]?.end_date || '',
+        IsHighestLevelEducation: applicant.app_educations[index].is_highest_level? 'Yes' : 'No',
+
+        // Experience information
+        JobTitle: applicant.app_experiences[index]?.job_title || '',
+        CompanyName: applicant.app_experiences[index]?.company_name || '',
+        ExperienceStartDate: applicant.app_experiences[index]?.start_date || '',
+        ExperienceEndDate: applicant.app_experiences[index]?.end_date || '',
+        Description: applicant.app_experiences[index]?.description || '',
+        IsCurrentWorkplace: applicant.app_experiences[index].current_workplace? 'Yes' : 'No',
+      
+        //Resume information
+        ResumeName: applicant.app_resumes[index]?.name || '',
+        ResumeUrl: applicant.app_resumes[index]?.url || '',
+
+        //CoverLetter
+        CoverLetterName: applicant.app_cover_letters[index]?.name || '',
+        CoverLetterUrl: applicant.app_cover_letters[index]?.url || '',
+
+
+      }));
+    });
+
+    // Create a worksheet from the data
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    // Create a new workbook and append the worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Applicant Data');
+
+    // Export the Excel file
+    XLSX.writeFile(workbook, 'applicants_data.xlsx');
+  };
+
+  return (
+    <button onClick={handleExport} className="bg-blue-500 text-white px-4 py-2 rounded">
+      Export to Excel
+    </button>
+  );
+}
+
+export function ApplyJob({ id }: { id: string }) {
+  return (
+    <Link
+      href={`/dashboard/jobs/${id}/applications`}
+      className="rounded-md border p-2 hover:bg-gray-100"
+    >
+      <EyeIcon className="w-5" />
     </Link>
   );
 }
